@@ -1,0 +1,139 @@
+---
+title: "OEP002321 dataset"
+subtitle: "Make metadata"
+author: "Audrey"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  html_document:
+    code_folding: show
+    code_download: true
+    toc: true
+    toc_float: true
+    number_sections: false
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+<!-- Automatically computes and prints in the output the running time for any code chunk -->
+```{r, echo=FALSE}
+# https://github.com/rstudio/rmarkdown/issues/1453
+hooks = knitr::knit_hooks$get()
+hook_foldable = function(type) {
+  force(type)
+  function(x, options) {
+    res = hooks[[type]](x, options)
+    
+    if (isFALSE(options[[paste0("fold_", type)]])) return(res)
+    
+    paste0(
+      "<details><summary>", "show", "</summary>\n\n",
+      res,
+      "\n\n</details>"
+    )
+  }
+}
+knitr::knit_hooks$set(
+  output = hook_foldable("output"),
+  plot = hook_foldable("plot"),
+  time_it = local({
+    now = NULL
+    function(before, options) {
+      if (options$time_it) {
+        if (before) {
+          now <<- Sys.time()
+        } else {
+          res = difftime(Sys.time(), now, units = "secs")
+          paste("(Time to run :", round(res, digits = 2), "s)")
+        }
+      }
+    }
+  })
+)
+```
+
+<!-- Set default parameters for all chunks -->
+```{r, setup, include = FALSE}
+set.seed(1337L)
+knitr::opts_chunk$set(echo = TRUE, # display code
+                      # display chunk output
+                      message = FALSE,
+                      warning = FALSE,
+                      fold_output = FALSE, # usefull for sessionInfo()
+                      fold_plot = FALSE,
+                      
+                      # figure settings
+                      fig.align = 'center',
+                      fig.width = 20,
+                      fig.height = 15,
+                      
+                      # something about seed, chunk and Rmarkdown compilation
+                      # https://stackoverflow.com/questions/39417003/long-vectors-not-supported-yet-error-in-rmd-but-not-in-r-script
+                      # cache = TRUE,
+                      cache.lazy = FALSE, 
+                      
+                      # add runtime after chunk
+                      time_it = FALSE)
+```
+
+
+This file is used to generate **sample_info**, a dataframe containing sample names, sample path, custom colors...
+
+```{r library}
+library(dplyr)
+library(patchwork)
+library(ggplot2)
+
+.libPaths()
+```
+
+
+# Preparation
+
+In this section, we set the global settings of the analysis. We will store data there :
+
+```{r out_dir}
+save_name = "wu"
+out_dir = "."
+```
+
+# Sample info
+
+We create a dataframe containing everything except colors.
+
+```{r sample_info}
+sample_info = data.frame(
+  project_name = c("F18", "F31B", "F31W", "F59", "F62B", "F62W"),
+  sample_type = rep("Wu_HD", 6),
+  color = c("royalblue", "slateblue", "slateblue4", "darkviolet", "violetred1", "violetred3"),
+  stringsAsFactors = FALSE) %>%
+  dplyr::mutate(project_name = factor(project_name, levels = project_name)) %>%
+  dplyr::mutate(unique_id = data.table::rowid(sample_type)) %>%
+  dplyr::mutate(sample_identifier = paste0(sample_type, "_", unique_id)) %>%
+  dplyr::mutate(sample_identifier = factor(sample_identifier, levels = sample_identifier)) %>%
+  dplyr::select(project_name,  sample_type, sample_identifier, color)
+
+sample_info
+```
+
+It is possible to make confusion between colors ?
+
+```{r custom_palette_see, fig.width = 5, fig.height = 5}
+graphics::pie(rep(1, nrow(sample_info)),
+              col = sample_info$color,
+              labels = sample_info$project_name)
+```
+
+We save it :
+
+```{r save_sample_info}
+saveRDS(sample_info, file = paste0(out_dir, "/", save_name, "_sample_info.rds"))
+```
+
+# R Session
+
+```{r sessioninfo, echo = FALSE, fold_output = TRUE}
+sessionInfo()
+```

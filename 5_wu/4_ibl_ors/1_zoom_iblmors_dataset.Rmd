@@ -102,7 +102,7 @@ out_dir = "."
 We load the sample information :
 
 ```{r custom_palette_sample, fig.width = 6, fig.height = 6}
-sample_info = readRDS(paste0(out_dir, "/../../1_metadata/hs_hd_sample_info.rds"))
+sample_info = readRDS(paste0(out_dir, "/../1_metadata/wu_sample_info.rds"))
 project_names_oi = sample_info$project_name
 
 graphics::pie(rep(1, nrow(sample_info)),
@@ -136,7 +136,7 @@ data.frame(cell_type = names(color_markers),
 We load the combined dataset containing all cell types from all samples :
 
 ```{r load_atlas}
-sobj = readRDS(paste0(out_dir, "/../../3_combined/hs_hd_sobj.rds"))
+sobj = readRDS(paste0(out_dir, "/../3_combined/wu_sobj.rds"))
 sobj
 ```
 
@@ -376,7 +376,7 @@ We look at key markers for `r save_name` cells, and for eventual contamination :
 
 ```{r plot_genes, fig.width = 12, fig.height = 6}
 plot_list = lapply(c("nFeature_RNA", iblmors_markers,
-                     c("SPINK5", "KRT1", "KRTDAP", "CIDEA")), FUN = function(one_gene) {
+                     c("SPINK5", "KRT1", "KRT31", "PRR9")), FUN = function(one_gene) {
                        Seurat::FeaturePlot(sobj, features = one_gene,
                                            reduction = paste0(reduction_name, "_", ndims, "_umap")) +
                          ggplot2::scale_color_gradientn(colors = aquarius::color_gene) +
@@ -387,22 +387,22 @@ plot_list = lapply(c("nFeature_RNA", iblmors_markers,
 patchwork::wrap_plots(plot_list, nrow = 2)
 ```
 
-We select clusters based on KRTDAP expression :
+We select clusters based on PRR9 (cortex) expression :
 
 ```{r select_clusters, fig.width = 10, fig.height = 5}
-mean_score_thresh = 1
+mean_score_thresh = 1.3
 
-sobj$KRTDAP_expr = Seurat::FetchData(sobj, "KRTDAP")
+sobj$PRR9_expr = Seurat::FetchData(sobj, "PRR9")
 score_by_clusters = sobj@meta.data %>%
-  dplyr::select(seurat_clusters, KRTDAP_expr) %>%
+  dplyr::select(seurat_clusters, PRR9_expr) %>%
   dplyr::group_by(seurat_clusters) %>%
-  dplyr::summarise(avg_score = mean(KRTDAP_expr)) %>%
+  dplyr::summarise(avg_score = mean(PRR9_expr)) %>%
   as.data.frame()
 
 ggplot2::ggplot(score_by_clusters, aes(x = seurat_clusters, y = avg_score)) +
   ggplot2::geom_point() +
   ggplot2::geom_hline(yintercept = mean_score_thresh, col = "red") +
-  ggplot2::labs(x = "Cluster ID", y = "Mean KRTDAP expression",
+  ggplot2::labs(x = "Cluster ID", y = "Mean PRR9 expression",
                 title = "Proportion of cells by cluster") +
   ggplot2::theme_classic() +
   ggplot2::theme(plot.title = element_text(hjust = 0.5, face = "bold"))
@@ -716,9 +716,9 @@ patchwork::wrap_plots(plot_list, ncol = 4) +
   ggplot2::theme(legend.position = "none")
 ```
 
-We make a heatmap to see clusters distribution among samples :
+We look at genes of interest on the projection :
 
-```{r annotated_heatmap, fig.width = 12, fig.height = 10}
+```{r plot_genes_oi, fig.width = 12, fig.height = 7}
 cluster_markers = c("KRT14",
                     # ORS-related
                     "KRT16", "MGP", "KRT6C", "CST6",
@@ -728,49 +728,6 @@ cluster_markers = c("KRT14",
                     "TOP2A", "MCM5",
                     "percent.mt", "percent.rb", "log_nCount_RNA")
 
-ht_annot = Seurat::FetchData(sobj, slot = "data", vars = cluster_markers) %>%
-  as.data.frame()
-ht_annot$clusters = sobj$seurat_clusters
-ht_annot = ht_annot %>%
-  dplyr::group_by(clusters) %>%
-  dplyr::summarise_all(funs('mean' = mean)) %>%
-  as.data.frame() %>%
-  dplyr::select(-clusters) %>%
-  `colnames<-`(c(cluster_markers))
-head(ht_annot)
-
-color_fun = function(one_gene) {
-  gene_range = range(ht_annot[, one_gene])
-  gene_palette = circlize::colorRamp2(colors = c("#FFFFFF", aquarius::color_gene[-1]),
-                                      breaks = seq(from = gene_range[1], to = gene_range[2],
-                                                   length.out = length(aquarius::color_gene)))
-  return(gene_palette)
-}
-
-ha = ComplexHeatmap::HeatmapAnnotation(df = ht_annot,
-                                       which = "column",
-                                       show_legend = TRUE,
-                                       col = setNames(nm = cluster_markers,
-                                                      lapply(cluster_markers, FUN = color_fun)),
-                                       annotation_name_side = "left")
-
-ht = aquarius::plot_prop_heatmap(df = sobj@meta.data[, c("sample_identifier", "seurat_clusters")],
-                                 bottom_annotation = ha,
-                                 cluster_rows = TRUE,
-                                 prop_margin = 1,
-                                 row_names_gp = grid::gpar(names = sample_info$sample_identifier,
-                                                           col = sample_info$color,
-                                                           fontface = "bold"),
-                                 row_title = "Sample",
-                                 column_title = "Cluster")
-
-ComplexHeatmap::draw(ht,
-                     merge_legends = TRUE)
-```
-
-We also look at genes of interest on the projection :
-
-```{r plot_genes_oi, fig.width = 12, fig.height = 7}
 plot_list = lapply(cluster_markers, FUN = function(one_gene) {
   p = Seurat::FeaturePlot(sobj, features = one_gene,
                           pt.size = 0.2, reduction = name2D) +

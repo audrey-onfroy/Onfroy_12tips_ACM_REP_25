@@ -96,7 +96,7 @@ library(ComplexHeatmap)
 In this section, we set the global settings of the analysis. We will store data there :
 
 ```{r out_dir}
-save_name = "hs_hd"
+save_name = "wu"
 out_dir = "."
 n_threads = 5 # for tSNE
 ```
@@ -105,7 +105,7 @@ n_threads = 5 # for tSNE
 We load the sample information :
 
 ```{r custom_palette_sample, fig.width = 5, fig.height = 5}
-sample_info = readRDS(paste0(out_dir, "/../1_metadata/hs_hd_sample_info.rds"))
+sample_info = readRDS(paste0(out_dir, "/../1_metadata/wu_sample_info.rds"))
 project_names_oi = sample_info$project_name
 
 graphics::pie(rep(1, nrow(sample_info)),
@@ -116,7 +116,7 @@ graphics::pie(rep(1, nrow(sample_info)),
 Here are custom colors for each cell type :
 
 ```{r color_markers, fig.width = 10, fig.height = 1, class.source = "fold-hide"}
-color_markers = readRDS(paste0(out_dir, "/../1_metadata/hs_hd_color_markers.rds"))
+color_markers = readRDS(paste0(out_dir, "/../../1_metadata/hs_hd_color_markers.rds"))
 
 data.frame(cell_type = names(color_markers),
            color = unlist(color_markers)) %>%
@@ -134,14 +134,14 @@ data.frame(cell_type = names(color_markers),
 We load the markers and specific colors for each cell type :
 
 ```{r cell_markers}
-cell_markers = readRDS(paste0(out_dir, "/../1_metadata/hs_hd_cell_markers.rds"))
+cell_markers = readRDS(paste0(out_dir, "/../../1_metadata/hs_hd_cell_markers.rds"))
 lengths(cell_markers)
 ```
 
 We load markers to display on the dotplot :
 
 ```{r dotplot_markers}
-dotplot_markers = readRDS(paste0(out_dir, "/../1_metadata/hs_hd_dotplot_markers.rds"))
+dotplot_markers = readRDS(paste0(out_dir, "/../../1_metadata/hs_hd_dotplot_markers.rds"))
 dotplot_markers
 ```
 
@@ -176,7 +176,6 @@ We represent cells in the tSNE :
 name2D = "RNA_pca_20_tsne"
 ```
 
-
 We look at cell type annotation for each dataset :
 
 ```{r cell_type_proj, fig.width = 14, fig.height = 8}
@@ -206,9 +205,7 @@ patchwork::wrap_plots(plot_list, ncol = 4) +
   ggplot2::theme(legend.position = "right")
 ```
 
-
 and clustering :
-
 
 ```{r clustering_proj, fig.width = 14, fig.height = 8}
 plot_list = lapply(sobj_list, FUN = function(one_sobj) {
@@ -228,141 +225,6 @@ plot_list = lapply(sobj_list, FUN = function(one_sobj) {
 })
 
 patchwork::wrap_plots(plot_list, ncol = 4)
-```
-
-## Melanocytes remomal
-
-For each individual dataset, we remove melanocytes. First, we smooth cell type annotation at a cluster level :
-
-```{r smooth_annotation}
-sobj_list = lapply(sobj_list, FUN = function(one_sobj) {
-  cluster_type = table(one_sobj$cell_type, one_sobj$seurat_clusters) %>%
-    prop.table(., margin = 2) %>%
-    apply(., 2, which.max)
-  cluster_type = setNames(nm = names(cluster_type),
-                          levels(one_sobj$cell_type)[cluster_type])
-  
-  one_sobj$cluster_type = cluster_type[one_sobj$seurat_clusters]
-  
-  ## Output
-  return(one_sobj)
-})
-```
-
-To locate melanocytes, we look at their score, cell type annotation, and clustering.
-
-```{r plot_cell_type, fig.width = 12, fig.height = 27}
-plot_list = lapply(sobj_list, FUN = function(one_sobj) {
-  project_name = as.character(unique(one_sobj$project_name))
-  plot_sublist = list()
-  
-  # Score
-  plot_sublist[[1]] = Seurat::FeaturePlot(one_sobj, reduction = name2D,
-                                          features = "score_melanocytes") +
-    ggplot2::labs(title = project_name,
-                  subtitle = "Melanocytes score") +
-    Seurat::NoAxes() +
-    ggplot2::scale_color_gradientn(colors = aquarius:::color_gene) +
-    ggplot2::theme(aspect.ratio = 1,
-                   plot.subtitle = element_text(hjust = 0.5))
-  
-  # Cell type
-  plot_sublist[[2]] = Seurat::DimPlot(one_sobj,
-                                      reduction = name2D,
-                                      group.by = "cell_type",
-                                      order = "melanocytes") +
-    ggplot2::scale_color_manual(values = c("purple", rep("gray92", length(color_markers) - 1)),
-                                breaks = c("melanocytes", setdiff(names(color_markers), "melanocytes"))) +
-    ggplot2::labs(title = "Cell type annotation",
-                  subtitle = paste0(sum(one_sobj$cell_type == "melanocytes"),
-                                    " melanocytes")) +
-    Seurat::NoAxes() + Seurat::NoLegend() +
-    ggplot2::theme(aspect.ratio = 1,
-                   plot.title = element_text(hjust = 0.5),
-                   plot.subtitle = element_text(hjust = 0.5))
-  
-  # Clusters
-  plot_sublist[[3]] = Seurat::DimPlot(one_sobj,
-                                      reduction = name2D,
-                                      group.by = "seurat_clusters",
-                                      label = TRUE) +
-    ggplot2::labs(title = "Clusters") +
-    Seurat::NoAxes() + Seurat::NoLegend() +
-    ggplot2::theme(aspect.ratio = 1,
-                   plot.title = element_text(hjust = 0.5),
-                   plot.subtitle = element_text(hjust = 0.5))
-  
-  # Cluster type
-  plot_sublist[[4]] = Seurat::DimPlot(one_sobj,
-                                      reduction = name2D,
-                                      group.by = "cluster_type") +
-    ggplot2::scale_color_manual(values = c("purple", rep("gray92", length(color_markers) - 1)),
-                                breaks = c("melanocytes", setdiff(names(color_markers), "melanocytes"))) +
-    ggplot2::labs(title = "Cluster annotation",
-                  subtitle = paste0(sum(one_sobj$cluster_type == "melanocytes"),
-                                    " melanocytes")) +
-    Seurat::NoAxes() + Seurat::NoLegend() +
-    ggplot2::theme(aspect.ratio = 1,
-                   plot.title = element_text(hjust = 0.5),
-                   plot.subtitle = element_text(hjust = 0.5))
-  
-  return(plot_sublist)
-}) %>% unlist(., recursive = FALSE)
-
-patchwork::wrap_plots(plot_list, ncol = 4)
-```
-
-We remove melanocytes based on cluster annotation :
-
-```{r remove_melanocytes}
-sobj_list = lapply(sobj_list, FUN = function(one_sobj) {
-  one_sobj$is_of_interest = (one_sobj$cluster_type != "melanocytes")
-  
-  if (sum(one_sobj$is_of_interest) > 0) {
-    one_sobj = subset(one_sobj, is_of_interest == TRUE)
-  } else {
-    one_sobj = NA
-  }
-  
-  one_sobj$is_of_interest = NULL
-  return(one_sobj)
-})
-
-lapply(sobj_list, FUN = dim) %>%
-  do.call(rbind, .) %>%
-  rbind(., colSums(.))
-```
-
-## Re-annotation
-
-We remove melanocytes from annotation :
-
-```{r remove_from_annot}
-cell_markers = cell_markers[names(cell_markers) != "melanocytes"]
-color_markers = color_markers[names(color_markers) != "melanocytes"]
-dotplot_markers = dotplot_markers[names(dotplot_markers) != "melanocytes"]
-```
-
-We re-annote cells for cell type, since melanocytes have been removed :
-
-```{r re_annot}
-sobj_list = lapply(sobj_list, FUN = function(one_sobj) {
-  # Remove old annotation
-  one_sobj@meta.data[, grep(colnames(one_sobj@meta.data), pattern = "score", value = TRUE)] = NULL
-  
-  # Re-annot
-  one_sobj = aquarius::cell_annot_custom(one_sobj,
-                                         newname = "cell_type",
-                                         markers = cell_markers,
-                                         use_negative = TRUE,
-                                         add_score = FALSE,
-                                         verbose = TRUE)
-  
-  # Set factor levels
-  one_sobj$cell_type = factor(one_sobj$cell_type, levels = names(cell_markers))
-  
-  return(one_sobj)
-})
 ```
 
 
@@ -672,101 +534,6 @@ plot_list[[length(plot_list) + 1]] = clusters_plot +
 
 patchwork::wrap_plots(plot_list, ncol = 4) &
   Seurat::NoLegend()
-```
-
-We make a heatmap to compare the representativness of cells for each sample, within each cluster :
-
-```{r cluster_by_sample_heatmap, fig.width = 10, fig.height = 5, class.source = "fold-hide"}
-cluster_by_sample = table(sobj$sample_identifier,
-                          sobj@meta.data[, "seurat_clusters"]) %>%
-  prop.table(margin = 1) %>%
-  as.matrix()
-
-## Representative markers
-cluster_markers = c("PTPRC", "CD3E", "AIF1", "MSX2", "DIO2", "GPX2", "KRT16")
-ht_annot = Seurat::GetAssayData(sobj, assay = "RNA", slot = "data")[cluster_markers, ] %>%
-  Matrix::t() %>% as.data.frame()
-ht_annot$clusters = sobj@meta.data[, "seurat_clusters"]
-ht_annot = ht_annot %>%
-  dplyr::group_by(clusters) %>%
-  dplyr::summarise_all(funs('mean' = mean)) %>%
-  as.data.frame() %>%
-  dplyr::select(-clusters) %>%
-  `colnames<-`(c(cluster_markers))
-
-color_fun = function(one_gene) {
-  gene_range = range(ht_annot[, one_gene])
-  gene_palette = circlize::colorRamp2(colors = c("#FFFFFF", aquarius::color_gene[-1]),
-                                      breaks = seq(from = gene_range[1], to = gene_range[2],
-                                                   length.out = length(aquarius::color_gene)))
-  return(gene_palette)
-}
-
-## Bottom annotation : average gene expression
-ha_bottom = ComplexHeatmap::HeatmapAnnotation(df = ht_annot,
-                                              which = "column",
-                                              show_legend = FALSE,
-                                              col = setNames(nm = cluster_markers,
-                                                             lapply(cluster_markers, FUN = color_fun)),
-                                              annotation_name_side = "left")
-
-## Right annotation : number of cells by dataset
-ht_annot = table(sobj$sample_identifier) %>%
-  as.data.frame.table() %>%
-  `colnames<-`(c("sample_identifier", "nb_cells")) %>%
-  `rownames<-`(.$sample_identifier) %>%
-  dplyr::select(-sample_identifier)
-
-ha_right = ComplexHeatmap::HeatmapAnnotation(
-  df = ht_annot,
-  which = "row",
-  show_legend = TRUE,
-  annotation_name_side = "top",
-  col = list(nb_cells  = circlize::colorRamp2(colors = RColorBrewer::brewer.pal(name = "Greys", n = 9),
-                                              breaks = seq(from = range(ht_annot$nb_cells)[1],
-                                                           to = range(ht_annot$nb_cells)[2],
-                                                           length.out = 9))))
-
-## Top annotation : main cell type in this cluster
-ht_annot = table(sobj$sample_identifier,
-                 sobj@meta.data[, "seurat_clusters"]) %>%
-  prop.table(margin = 1) %>%
-  as.matrix()
-
-ht_annot = table(sobj$cell_type,
-                 sobj$seurat_clusters) %>%
-  prop.table(., margin = 2) %>%
-  apply(., 2, which.max)
-ht_annot = data.frame(row.names = names(ht_annot),
-                      cell_type = names(color_markers)[ht_annot])
-
-ha_top = ComplexHeatmap::HeatmapAnnotation(
-  df = ht_annot,
-  which = "column",
-  show_legend = TRUE,
-  annotation_name_side = "left",
-  col = list(cell_type = color_markers))
-
-## Assemble heatmap
-ht = ComplexHeatmap::Heatmap(cluster_by_sample,
-                             heatmap_legend_param = list(title = "Proportion",
-                                                         col = c("#2166AC", "#F7F7F7", "#B2182B")),
-                             bottom_annotation = ha_bottom,
-                             right_annotation = ha_right,
-                             top_annotation = ha_top,
-                             cluster_rows = TRUE,
-                             cluster_columns = TRUE,
-                             row_title = "Sample",
-                             row_names_gp = grid::gpar(names = sample_info$sample_identifier,
-                                                       col = sample_info$color,
-                                                       fontface = "bold"),
-                             column_title = "Cluster",
-                             row_names_side = "left",
-                             column_names_side = "top",
-                             column_names_rot = 0)
-
-## Draw !
-ComplexHeatmap::draw(ht, merge_legends = TRUE)
 ```
 
 ## Cell type

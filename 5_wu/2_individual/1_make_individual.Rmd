@@ -1,6 +1,6 @@
 ---
 params:
-  sample_name: "2021_31"
+  sample_name: "F31W"
 title: "OEP002321 dataset"
 subtitle: "Sample `r params$sample_name`"
 author: "Audrey"
@@ -110,21 +110,21 @@ out_dir = "."
 We load the parameters :
 
 ```{r get_param}
-sample_name = params$sample_name # "2021_31"
-# sample_name = "2021_31"
+sample_name = params$sample_name # "F31W"
+# sample_name = "F31W"
 ```
 
 Input count matrix is there :
 
 ```{r count_matrix_dir}
-count_matrix_dir = paste0(out_dir, "/input/", sample_name)
+count_matrix_dir = paste0(out_dir, "/input/", sample_name, "/raw_feature_bc_matrix")
 ```
 
 
 We load the markers and specific colors for each cell type :
 
 ```{r cell_markers}
-cell_markers = readRDS(paste0(out_dir, "/../1_metadata/hs_hd_cell_markers.rds"))
+cell_markers = readRDS(paste0(out_dir, "/../../1_metadata/hs_hd_cell_markers.rds"))
 cell_markers = lapply(cell_markers, FUN = toupper)
 lengths(cell_markers)
 ```
@@ -132,7 +132,7 @@ lengths(cell_markers)
 Here are custom colors for each cell type :
 
 ```{r color_markers, fig.width = 12, fig.height = 1, class.source = "fold-hide"}
-color_markers = readRDS(paste0(out_dir, "/../1_metadata/hs_hd_color_markers.rds"))
+color_markers = readRDS(paste0(out_dir, "/../../1_metadata/hs_hd_color_markers.rds"))
 
 data.frame(cell_type = names(color_markers),
            color = unlist(color_markers)) %>%
@@ -151,7 +151,7 @@ data.frame(cell_type = names(color_markers),
 We load markers to display on the dotplot :
 
 ```{r dotplot_markers}
-dotplot_markers = readRDS(paste0(out_dir, "/../1_metadata/hs_hd_dotplot_markers.rds"))
+dotplot_markers = readRDS(paste0(out_dir, "/../../1_metadata/hs_hd_dotplot_markers.rds"))
 dotplot_markers = lapply(dotplot_markers, FUN = toupper)
 dotplot_markers
 ```
@@ -160,7 +160,7 @@ dotplot_markers
 We load metadata for this sample :
 
 ```{r sample_info}
-sample_info = readRDS(paste0(out_dir, "/../1_metadata/hs_hd_sample_info.rds"))
+sample_info = readRDS(paste0(out_dir, "/../1_metadata/wu_sample_info.rds"))
 sample_info %>%
   dplyr::filter(project_name == sample_name)
 ```
@@ -186,6 +186,23 @@ sobj = aquarius::load_sc_data(data_path = count_matrix_dir,
                               my_seed = 1337L)
 sobj
 ```
+
+We set an upper bound to 20,000 cells. Remaining cells correspond to ambient RNA.
+
+```{r top_2000}
+if (ncol(sobj) > 20000) {
+  sobj$nb_UMI = Seurat::GetAssayData(sobj, assay = "RNA", slot = "counts") %>%
+    Matrix::colSums()
+  
+  thresh_20k = sort(sobj$nb_UMI, decreasing = TRUE)[20000]
+  
+  sobj = subset(sobj, nb_UMI >= thresh_20k)
+  sobj$nb_UMI = NULL
+  
+  sobj
+}
+```
+
 
 In genes metadata, we add the Ensembl ID. The `sobj@assays$RNA@meta.features` dataframe contains three information :
 
@@ -414,14 +431,14 @@ fsobj
 On this filtered dataset, we apply doublet cells detection. Just before, we run the normalization, taking into account only the remaining cells.
 
 ```{r normalization_doublets}
-sobj = Seurat::NormalizeData(sobj,
-                             normalization.method = "LogNormalize",
-                             assay = "RNA")
+fsobj = Seurat::NormalizeData(fsobj,
+                              normalization.method = "LogNormalize",
+                              assay = "RNA")
 
-sobj = Seurat::FindVariableFeatures(sobj,
-                                    assay = "RNA",
-                                    nfeatures = 3000)
-sobj
+fsobj = Seurat::FindVariableFeatures(fsobj,
+                                     assay = "RNA",
+                                     nfeatures = 3000)
+fsobj
 ```
 
 We identify doublet cells :

@@ -230,6 +230,8 @@ row_oi = (sample_info$project_name == sample_name)
 sobj$project_name = sample_name
 sobj$sample_identifier = sample_info[row_oi, "sample_identifier"]
 sobj$sample_type = sample_info[row_oi, "sample_type"]
+sobj$location = sample_info[row_oi, "location"]
+sobj$laboratory = sample_info[row_oi, "laboratory"]
 
 colnames(sobj@meta.data)
 ```
@@ -897,72 +899,6 @@ sobj$fail = NULL
 
 # Plot
 patchwork::wrap_plots(plot_list, nrow = 1)
-```
-
-What is the composition of doublet cells ? We just look at score for each cell type.
-
-```{r doublets_composition, class.source = "fold-hide"}
-sobj$orig.ident.doublets = case_when(is.na(sobj$doublets_consensus.class) ~ "bad quality",
-                                     sobj$doublets_consensus.class == TRUE ~ paste0(sobj$orig.ident, " doublets"),
-                                     sobj$doublets_consensus.class == FALSE ~ "not doublet")
-sobj$orig.ident.doublets = factor(sobj$orig.ident.doublets,
-                                  levels = c(paste0(as.character(sample_info$sample_identifiant), " doublets"),
-                                             "bad quality", "not doublet"))
-
-doublets_compo = function(score1, score2) {
-  type1 = unlist(lapply(stringr::str_split(score1, pattern = "score_"), `[[`, 2))
-  type2 = unlist(lapply(stringr::str_split(score2, pattern = "score_"), `[[`, 2))
-  
-  if (type1 == type2) {
-    the_title = "Homotypic doublet"
-    the_subtitle = type1
-    score1 = "log_nCount_RNA"
-  } else {
-    the_title = "Heterotypic doublet"
-    the_subtitle = paste(type1, type2, sep = " + ")
-  }
-  
-  p = sobj@meta.data %>%
-    dplyr::arrange(desc(orig.ident.doublets)) %>%
-    ggplot2::ggplot(., aes(x = eval(parse(text = score1)),
-                           y = eval(parse(text = score2)),
-                           col = orig.ident.doublets)) +
-    ggplot2::geom_point(size = 0.25) +
-    ggplot2::scale_color_manual(values = c(sample_info$color, "gray90", "gray60"),
-                                breaks = c(paste0(as.character(sample_info$sample_identifiant), " doublets"),
-                                           "bad quality", "not doublet")) +
-    ggplot2::labs(x = score1, y = score2,
-                  title = the_title, subtitle = the_subtitle) +
-    ggplot2::theme_classic() +
-    ggplot2::theme(aspect.ratio = 1,
-                   plot.title = element_text(hjust = 0.5),
-                   plot.subtitle = element_text(hjust = 0.5))
-  
-  return(p)
-}
-```
-
-```{r doublets_patchwork_prep, class.source = "fold-hide"}
-score_columns = grep(x = colnames(sobj@meta.data),
-                     pattern = "^score",
-                     value = TRUE)
-combinations = expand.grid(score_columns, score_columns) %>%
-  apply(., 1, sort) %>% t() %>%
-  as.data.frame()
-combinations = combinations[!duplicated(combinations), ]
-
-plot_list = apply(combinations, 1, FUN = function(elem) {
-  doublets_compo(elem[1], elem[2])
-})
-
-sobj$orig.ident.doublets = NULL
-```
-
-
-```{r doublets_patchwork, fig.width = 12, fig.height = 80, fold_plot = TRUE}
-patchwork::wrap_plots(plot_list, ncol = 4) +
-  patchwork::plot_layout(guides = "collect") &
-  ggplot2::theme(legend.position = "right")
 ```
 
 ## Save

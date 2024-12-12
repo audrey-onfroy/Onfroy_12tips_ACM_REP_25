@@ -106,14 +106,18 @@ We create a dataframe containing everything except colors.
 ```{r sample_info}
 sample_info = data.frame(
   project_name = c("F18", "F31B", "F31W", "F59", "F62B", "F62W"),
-  sample_type = rep("Wu_HD", 6),
+  sample_type = rep("HD", 6),
   color = c("royalblue", "slateblue", "slateblue4", "darkviolet", "violetred1", "violetred3"),
+  gender = rep("F", 6),
+  platform = rep("10X", 6),
+  location = rep("hair scalp", 6),
+  laboratory = rep("Wu", 6),
   stringsAsFactors = FALSE) %>%
   dplyr::mutate(project_name = factor(project_name, levels = project_name)) %>%
   dplyr::mutate(unique_id = data.table::rowid(sample_type)) %>%
-  dplyr::mutate(sample_identifier = paste0(sample_type, "_", unique_id)) %>%
+  dplyr::mutate(sample_identifier = paste0(laboratory, "_", sample_type, "_", unique_id)) %>%
   dplyr::mutate(sample_identifier = factor(sample_identifier, levels = sample_identifier)) %>%
-  dplyr::select(project_name,  sample_type, sample_identifier, color)
+  dplyr::select(project_name, sample_type, sample_identifier, platform, gender, location, laboratory, color)
 
 sample_info
 ```

@@ -1,0 +1,562 @@
+---
+title: "OEP002321 dataset"
+subtitle: "Make ORS + IFE basal analysis"
+author: "Audrey"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  html_document:
+    code_folding: show
+    code_download: true
+    toc: true
+    toc_float: true
+    number_sections: false
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+<!-- Automatically computes and prints in the output the running time for any code chunk -->
+```{r, echo=FALSE}
+# https://github.com/rstudio/rmarkdown/issues/1453
+hooks = knitr::knit_hooks$get()
+hook_foldable = function(type) {
+  force(type)
+  function(x, options) {
+    res = hooks[[type]](x, options)
+    
+    if (isFALSE(options[[paste0("fold_", type)]])) return(res)
+    
+    paste0(
+      "<details><summary>", "show", "</summary>\n\n",
+      res,
+      "\n\n</details>"
+    )
+  }
+}
+knitr::knit_hooks$set(
+  output = hook_foldable("output"),
+  plot = hook_foldable("plot"),
+  time_it = local({
+    now = NULL
+    function(before, options) {
+      if (options$time_it) {
+        if (before) {
+          now <= Sys.time()
+        } else {
+          res = difftime(Sys.time(), now, units = "secs")
+          paste("(Time to run :", round(res, digits = 2), "s)")
+        }
+      }
+    }
+  })
+)
+```
+
+<!-- Set default parameters for all chunks -->
+```{r, setup, include = FALSE}
+set.seed(1337L)
+knitr::opts_chunk$set(echo = TRUE, # display code
+                      # display chunk output
+                      message = FALSE,
+                      warning = FALSE,
+                      fold_output = FALSE, # usefull for sessionInfo()
+                      fold_plot = FALSE,
+                      
+                      # figure settings
+                      fig.align = 'center',
+                      fig.width = 20,
+                      fig.height = 15,
+                      
+                      # something about seed, chunk and Rmarkdown compilation
+                      # https://stackoverflow.com/questions/39417003/long-vectors-not-supported-yet-error-in-rmd-but-not-in-r-script
+                      # cache = TRUE,
+                      cache.lazy = FALSE, 
+                      
+                      # add runtime after chunk
+                      time_it = FALSE)
+```
+
+
+This file is used to analyse the immune cells dataset.
+
+```{r library}
+library(dplyr)
+library(patchwork)
+library(ggplot2)
+library(ComplexHeatmap)
+
+.libPaths()
+```
+
+# Preparation
+
+In this section, we set the global settings of the analysis. We will store data there :
+
+```{r out_dir}
+save_name = "iblmors"
+out_dir = "."
+```
+
+We load the dataset :
+
+```{r load_sobj}
+sobj = readRDS(paste0(out_dir, "/", save_name, "_sobj.rds"))
+sobj
+```
+
+We load the sample information :
+
+```{r custom_palette_sample, fig.width = 6, fig.height = 6}
+sample_info = readRDS(paste0(out_dir, "/../1_metadata/wu_sample_info.rds"))
+project_names_oi = sample_info$project_name
+
+graphics::pie(rep(1, nrow(sample_info)),
+              col = sample_info$color,
+              labels = sample_info$project_name)
+```
+
+Here are custom colors for each cell type :
+
+```{r color_markers, fig.width = 10, fig.height = 1.2, class.source = "fold-hide"}
+color_markers = readRDS(paste0(out_dir, "/../../1_metadata/hs_hd_color_markers.rds"))
+
+data.frame(cell_type = names(color_markers),
+           color = unlist(color_markers)) %>%
+  ggplot2::ggplot(., aes(x = cell_type, y = 0, fill = cell_type)) +
+  ggplot2::geom_point(pch = 21, size = 5) +
+  ggplot2::scale_fill_manual(values = unlist(color_markers), breaks = names(color_markers)) +
+  ggplot2::theme_classic() +
+  ggplot2::theme(legend.position = "none",
+                 axis.line = element_blank(),
+                 axis.title = element_blank(),
+                 axis.ticks = element_blank(),
+                 axis.text.y = element_blank(),
+                 axis.text.x = element_text(angle = 30, hjust = 1))
+```
+
+This is the projection of interest :
+
+```{r name2D}
+name2D = "harmony_20_tsne"
+```
+
+We design a custom function to make the GSEA plot and a word cloud graph :
+
+```{r make_gsea_plot, class.source = "fold-hide"}
+make_gsea_plot = function(gsea_results, gs_oi, fold_change, metric = "FC") {
+  fold_change$metric = fold_change[, metric]
+  
+  plot_list = lapply(gs_oi, FUN = function(gene_set) {
+    # Gene set content
+    gs_content = gene_sets %>%
+      dplyr::filter(gs_name == gene_set) %>%
+      dplyr::pull(ensembl_gene) %>%
+      unique()
+    
+    # Gene set size
+    nb_genes = length(gs_content)
+    
+    # Enrichment metrics
+    NES = gsea_results@result[gene_set, "NES"]
+    p.adjust = gsea_results@result[gene_set, "p.adjust"] %>%
+      round(., 4)
+    qvalues = gsea_results@result[gene_set, "qvalues"]
+    
+    if (p.adjust > 0.05) {
+      p.adjust = paste0("<span style='color:red;'>", p.adjust, "</span>")
+    }
+    
+    my_subtitle = paste0("\nNES : ", round(NES, 2),
+                         " | padj : ", p.adjust,
+                         " | qval : ", round(qvalues, 4),
+                         " | set size : ", nb_genes, " genes")
+    
+    # Size limits
+    lower_FC = min(fold_change[gs_content, ]$metric, na.rm = TRUE)
+    upper_FC = max(fold_change[gs_content, ]$metric, na.rm = TRUE)
+    
+    # Plot
+    p = enrichplot::gseaplot2(x = gsea_results, geneSetID = gene_set) +
+      ggplot2::labs(title = gene_set,
+                    subtitle = my_subtitle) +
+      ggplot2::theme(plot.title = element_text(hjust = 0.5, face = "bold",
+                                               margin = ggplot2::margin(3, 3, 5, 3)),
+                     plot.subtitle = ggtext::element_markdown(hjust = 0.5,
+                                                              size = 10))
+    
+    wc = ggplot2::ggplot(fold_change[gs_content, ],
+                         aes(label = gene_name, size = abs(metric), color = metric)) +
+      ggwordcloud::geom_text_wordcloud_area(show.legend = TRUE) +
+      ggplot2::scale_color_gradient2(
+        name = metric,
+        low = aquarius::color_cnv[1],
+        mid = "gray70", midpoint = 0,
+        high = aquarius::color_cnv[3]) +
+      ggplot2::scale_size_area(max_size = 7) +
+      ggplot2::theme_minimal() +
+      ggplot2::guides(size = "none")
+    
+    return(list(p, wc))
+  }) %>% unlist(., recursive = FALSE)
+  
+  return(plot_list)
+}
+```
+
+
+# Visualization
+
+## Gene expression
+
+We visualize gene expression for some markers :
+
+```{r plot_list_features, fig.width = 12, fig.height = 4}
+features = c("percent.mt", "percent.rb", "nFeature_RNA")
+
+plot_list = lapply(features, FUN = function(one_gene) {
+  Seurat::FeaturePlot(sobj, features = one_gene,
+                      reduction = name2D) +
+    ggplot2::theme(aspect.ratio = 1) +
+    ggplot2::scale_color_gradientn(colors = aquarius::color_gene) +
+    Seurat::NoAxes()
+})
+
+patchwork::wrap_plots(plot_list, ncol = 3)
+```
+
+## Clusters
+
+We visualize clusters :
+
+```{r see_clustering, fig.width = 6, fig.height = 4}
+cluster_plot = Seurat::DimPlot(sobj, reduction = name2D, label = TRUE) +
+  Seurat::NoAxes() +
+  ggplot2::theme(aspect.ratio = 1)
+cluster_plot
+```
+
+## Cell type
+
+We visualize cell type split by sample :
+
+```{r plot_split_dimred, fig.width = 12, fig.height = 7}
+plot_list = aquarius::plot_split_dimred(sobj,
+                                        reduction = name2D,
+                                        split_by = "project_name",
+                                        group_by = "cell_type",
+                                        split_color = setNames(sample_info$color,
+                                                               nm = sample_info$project_name),
+                                        group_color = color_markers,
+                                        bg_pt_size = 0.5, main_pt_size = 0.5)
+
+plot_list[[length(plot_list) + 1]] = cluster_plot
+
+patchwork::wrap_plots(plot_list, ncol = 4) &
+  Seurat::NoLegend()
+```
+
+## Cluster type
+
+We summarize major cell type by cluster :
+
+```{r cell_type_clusters}
+cell_type_clusters = sobj@meta.data[, c("cell_type", "seurat_clusters")] %>%
+  table() %>%
+  prop.table(., margin = 2) %>%
+  apply(., 2, which.max)
+cell_type_clusters = setNames(levels(sobj$cell_type)[cell_type_clusters],
+                              nm = names(cell_type_clusters))
+
+```
+
+We define cluster type :
+
+```{r table_cluster_type}
+sobj$cluster_type = cell_type_clusters[sobj$seurat_clusters] %>%
+  as.factor()
+table(sobj$cluster_type, sobj$cell_type)
+```
+
+We subset `color_markers` :
+
+```{r subset_colors}
+color_markers = color_markers[levels(sobj$cluster_type)]
+```
+
+
+We compare cluster annotation and cell type annotation :
+
+```{r see_cluster_type, fig.width = 10, fig.height = 5}
+p1 = Seurat::DimPlot(sobj, group.by = "cell_type",
+                     reduction = name2D, cols = color_markers) +
+  ggplot2::labs(title = "Cell type") +
+  Seurat::NoAxes() +
+  ggplot2::theme(aspect.ratio = 1,
+                 plot.title = element_text(hjust = 0.5))
+
+p2 = Seurat::DimPlot(sobj, group.by = "cluster_type",
+                     reduction = name2D, cols = color_markers) +
+  ggplot2::labs(title = "Cluster type") +
+  Seurat::NoAxes() +
+  ggplot2::theme(aspect.ratio = 1,
+                 plot.title = element_text(hjust = 0.5))
+
+patchwork::wrap_plots(p1, p2, guides = "collect")
+```
+
+## Barplot
+
+We make a barplot to compare ORS and IFE basal populations in HS vs HD samples. The proportion of ORS is indicated on top of bars.
+
+```{r barplot_ibl_ors, fig.width = 7, fig.height = 5}
+quantif = table(sobj$sample_identifier,
+                sobj$cluster_type) %>%
+  as.data.frame.table() %>%
+  `colnames<-`(c("Sample", "cell_type", "nb_cells")) %>%
+  dplyr::group_by(Sample) %>%
+  dplyr::mutate(total_cells = sum(nb_cells)) %>%
+  as.data.frame() %>%
+  dplyr::filter(cell_type == "ORS") %>%
+  dplyr::mutate(prop_ibl = nb_cells / total_cells) %>%
+  dplyr::mutate(prop_ibl = 100*round(prop_ibl, 4))
+
+sobj$seurat_clusters = factor(sobj$seurat_clusters,
+                              levels = names(sort(cell_type_clusters)))
+
+aquarius::plot_barplot(df = table(sobj$sample_identifier,
+                                  sobj$seurat_clusters) %>%
+                         as.data.frame.table() %>%
+                         `colnames<-`(c("sample_identifier", "clusters", "nb_cells")),
+                       x = "sample_identifier", y = "nb_cells", fill = "clusters",
+                       position = position_fill()) +
+  ggplot2::scale_fill_manual(values = c(colorRampPalette(c("chartreuse1", "chartreuse4"))(table(sort(cell_type_clusters))["ORS"]),
+                                        colorRampPalette(c("cadetblue1", "cadetblue4"))(table(sort(cell_type_clusters))["IFE basal"])),
+                             breaks = names(sort(cell_type_clusters)),
+                             name = "Cell type") +
+  ggplot2::geom_label(data = quantif, inherit.aes = FALSE,
+                      aes(x = .data$Sample, y = 1.05, label = .data$prop_ibl),
+                      label.size = 0, size = 5)
+```
+
+# ORS vs IFE basal
+
+In this section, we perform DE between inner bulge layer (ORS) and outer root sheath (IFE basal) populations.
+
+## Preparation
+
+We save the results in a list :
+
+```{r list_results}
+list_results = list()
+```
+
+We make over-representation analysis for each group of genes. We load gene sets from MSigDB :
+
+```{r gene_sets}
+gene_sets = aquarius::get_gene_sets(species = "Homo sapiens")
+gene_sets = gene_sets$gene_sets
+
+head(gene_sets)
+```
+
+How many gene sets ?
+
+```{r count_gene_sets}
+gene_sets[, c("gs_subcat", "gs_name")] %>%
+  dplyr::distinct() %>%
+  dplyr::pull(gs_subcat) %>%
+  table() %>%
+  as.data.frame.table() %>%
+  `colnames<-`(c("Category", "Nb gene sets"))
+```
+
+We get gene name and gene ID correspondence :
+
+```{r gene_corresp}
+gene_corresp = sobj@assays[["RNA"]]@meta.features[, c("gene_name", "Ensembl_ID")] %>%
+  `colnames<-`(c("NAME", "ID")) %>%
+  dplyr::mutate(ID = as.character(ID))
+rownames(gene_corresp) = gene_corresp$ID
+
+head(gene_corresp)
+```
+
+
+## Set idents
+
+```{r group_name_ibl_ors}
+group_name = "ORS_vs_IFE basal"
+```
+
+
+We change cell identities to cluster type :
+
+```{r ident_cluster_type}
+Seurat::Idents(sobj) = sobj$cluster_type
+
+table(Seurat::Idents(sobj))
+```
+
+### DE
+
+We identify specific markers for each population :
+
+```{r de_clust0, fig.width = 5, fig.height = 5}
+mark = Seurat::FindMarkers(sobj, ident.1 = "ORS", ident.2 = "IFE basal")
+
+mark = mark %>%
+  dplyr::filter(p_val_adj < 0.05) %>%
+  dplyr::arrange(-avg_logFC, pct.1 - pct.2)
+
+list_results[[group_name]]$mark = mark
+
+dim(mark)
+head(mark, n = 20)
+```
+
+There are `r nrow(mark)` genes differentially expressed. How many for each population ?
+
+```{r makr_by_pop}
+# ORS
+mark_ibl = mark %>%
+  dplyr::filter(avg_logFC > 0)
+nrow(mark_ibl)
+
+# IFE basal
+mark_ors = mark %>%
+  dplyr::filter(avg_logFC < 0)
+nrow(mark_ors)
+```
+
+We represent the information on a figure :
+
+```{r plot_de_pop, fig.width = 10, fig.height = 10}
+mark$gene_name = rownames(mark)
+mark_to_label = rbind(
+  # up-regulated in ORS
+  mark %>% dplyr::top_n(., n = 20, wt = avg_logFC),
+  # up-regulated in IFE basal
+  mark %>% dplyr::top_n(., n = 20, wt = -avg_logFC),
+  # representative and selective for ORS
+  mark %>% dplyr::top_n(., n = 20, wt = (pct.1 - pct.2)),
+  # representative and selective for IFE basal
+  mark %>% dplyr::top_n(., n = 20, wt = -(pct.1 - pct.2))) %>%
+  dplyr::distinct()
+
+ggplot2::ggplot(mark, aes(x = pct.1, y = pct.2, col = avg_logFC)) +
+  ggplot2::geom_abline(slope = 1, intercept = 0, lty = 2) +
+  ggplot2::geom_point() +
+  ggrepel::geom_label_repel(data = mark_to_label, max.overlaps = Inf,
+                            aes(x = pct.1, y = pct.2, label = gene_name),
+                            col = "black", fill = NA, size = 3, label.size = NA) +
+  ggplot2::labs(title = "Differentially expressed genes",
+                subtitle = "between ORS and IFE basal") +
+  ggplot2::scale_color_gradient2(low = aquarius::color_cnv[1],
+                                 mid = aquarius::color_cnv[2],
+                                 high = aquarius::color_cnv[3],
+                                 midpoint = 0) +
+  ggplot2::theme_classic() +
+  ggplot2::theme(plot.title = element_text(hjust = 0.5),
+                 plot.subtitle = element_text(hjust = 0.5))
+```
+
+### ORS
+
+We explore enrichment in gene sets for ORS population
+
+```{r ora_ibl, fig.width = 12, fig.height = 6}
+genes_of_interest = rownames(mark_ibl)
+
+enrichr_results = aquarius::run_enrichr(gene_names = genes_of_interest,
+                                        gene_corresp = gene_corresp,
+                                        gene_sets = gene_sets[, c("gs_name", "ensembl_gene")],
+                                        make_plot = TRUE,
+                                        plot_title = "Up-regulated in ORS compared to IFE basal")
+
+list_results[[group_name]]$enrichr_ibl = enrichr_results$ego
+
+enrichr_results$plot +
+  ggplot2::theme(axis.text.y = element_text(size = 8))
+```
+
+### IFE basal
+
+We explore enrichment in gene sets for IFE basal population.
+
+```{r ora_ors, fig.width = 12, fig.height = 6}
+genes_of_interest = rownames(mark_ors)
+
+enrichr_results = aquarius::run_enrichr(gene_names = genes_of_interest,
+                                        gene_corresp = gene_corresp,
+                                        gene_sets = gene_sets[, c("gs_name", "ensembl_gene")],
+                                        make_plot = TRUE,
+                                        plot_title = "Up-regulated in IFE basal compared to ORS")
+
+list_results[[group_name]]$enrichr_ors = enrichr_results$ego
+
+enrichr_results$plot +
+  ggplot2::theme(axis.text.y = element_text(size = 8))
+```
+
+
+### GSEA
+
+We run a GSEA for all gene sets, from the full count matrix :
+
+```{r gsea_ibl_ors, fig.width = 12, fig.height = 40}
+ranked_gene_list = aquarius::run_foldchange(Seurat::GetAssayData(sobj, assay = "RNA", slot = "counts"),
+                                            group1 = colnames(sobj)[sobj@active.ident %in% "ORS"],
+                                            group2 = colnames(sobj)[sobj@active.ident %in% "IFE basal"])
+names(ranked_gene_list) = gene_corresp$ID
+
+gsea_results = aquarius::gsea_run(ranked_gene_list = ranked_gene_list,
+                                  gene_sets = gene_sets[, c("gs_name", "ensembl_gene")],
+                                  GSEA_p_val_thresh = 1)
+
+list_results[[group_name]]$gsea = gsea_results
+
+gsea_results@result %>%
+  dplyr::filter(pvalue < 0.05) %>%
+  dplyr::top_n(., n = 200, wt = abs(NES)) %>%
+  dplyr::mutate(too_long = ifelse(nchar(ID) > 60, yes = TRUE, no = FALSE)) %>%
+  dplyr::mutate(ID = stringr::str_sub(ID, end = 60)) %>%
+  dplyr::mutate(ID = ifelse(too_long, yes = paste0(ID, "..."), no = ID)) %>%
+  aquarius::gsea_plot(show_legend = TRUE) +
+  ggplot2::labs(title = "GSEA using all genes (count matrix)") +
+  ggplot2::theme(plot.title = element_text(size = 20))
+```
+
+We make the gsea plot for two gene sets :
+
+```{r gsea_plot_ibl_ors, fig.width = 15, fig.height = 7}
+p1 = enrichplot::gseaplot2(x = gsea_results, geneSetID = "REACTOME_KERATINIZATION") +
+  ggplot2::labs(title = "REACTOME_KERATINIZATION") +
+  ggplot2::theme(plot.title = element_text(hjust = 0.5, face = "bold",
+                                           margin = ggplot2::margin(3, 3, 5, 3)))
+
+p2 = enrichplot::gseaplot2(x = gsea_results, geneSetID = "HALLMARK_INTERFERON_GAMMA_RESPONSE") +
+  ggplot2::labs(title = "HALLMARK_INTERFERON_GAMMA_RESPONSE") +
+  ggplot2::theme(plot.title = element_text(hjust = 0.5, face = "bold",
+                                           margin = ggplot2::margin(3, 3, 5, 3)))
+
+p1 | p2
+```
+
+
+# Save
+
+We save the list of results :
+
+```{r save_list_results}
+saveRDS(list_results, file = paste0(out_dir, "/", save_name, "_list_results.rds"))
+```
+
+
+# R Session
+
+```{r sessioninfo, echo = FALSE, fold_output = TRUE}
+sessionInfo()
+```
+

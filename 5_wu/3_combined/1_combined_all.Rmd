@@ -115,7 +115,7 @@ graphics::pie(rep(1, nrow(sample_info)),
 
 Here are custom colors for each cell type :
 
-```{r color_markers, fig.width = 10, fig.height = 1, class.source = "fold-hide"}
+```{r color_markers, fig.width = 10, fig.height = 1.2, class.source = "fold-hide"}
 color_markers = readRDS(paste0(out_dir, "/../../1_metadata/hs_hd_color_markers.rds"))
 
 data.frame(cell_type = names(color_markers),
@@ -128,7 +128,8 @@ data.frame(cell_type = names(color_markers),
                  axis.line = element_blank(),
                  axis.title = element_blank(),
                  axis.ticks = element_blank(),
-                 axis.text.y = element_blank())
+                 axis.text.y = element_blank(),
+                 axis.text.x = element_text(angle = 30, hjust = 1))
 ```
 
 We load the markers and specific colors for each cell type :
@@ -258,8 +259,8 @@ We keep a subset of meta.data and reset levels :
 ```{r sobj_set_factor_levels}
 sobj@meta.data = sobj@meta.data[, c("orig.ident", "nCount_RNA", "nFeature_RNA", "log_nCount_RNA",
                                     "project_name", "sample_identifier", "sample_type",
-                                    "Seurat.Phase", "cyclone.Phase", "percent.mt", "percent.rb",
-                                    "cell_type")]
+                                    "laboratory", "location", "Seurat.Phase", "cyclone.Phase",
+                                    "percent.mt", "percent.rb", "cell_type")]
 
 sobj$orig.ident = factor(sobj$orig.ident, levels = levels(sample_info$project_name))
 sobj$project_name = factor(sobj$project_name, levels = levels(sample_info$project_name))

@@ -143,7 +143,7 @@ sobj
 We represent cells in the tSNE :
 
 ```{r name2D}
-name2D = "harmony_38_tsne"
+name2D = "harmony_39_tsne"
 ```
 
 We smooth cell type annotation at a cluster level :
@@ -161,13 +161,13 @@ sobj$cluster_type = cluster_type[sobj$seurat_clusters]
 
 We look gene markers expression level, cell annotation and cluster-smoothed annotation on the projection, to locate `r save_name` cells :
 
-```{r see_iblmors_markers, fig.width = 12, fig.height = 3}
-iblmors_markers = c("KRT16", "EHF", "ALDH3A1")
-iblmors_cell_type = c("ORS", "IFE basal")
-color_markers[!(names(color_markers) %in% iblmors_cell_type)] = "gray92"
+```{r see_ors_ifeb_markers, fig.width = 12, fig.height = 3}
+ors_ifeb_markers = c("KRT16", "EHF", "ALDH3A1")
+ors_ifeb_cell_type = c("ORS", "IFE basal")
+color_markers[!(names(color_markers) %in% ors_ifeb_cell_type)] = "gray92"
 
 # Feature Plot
-plot_list = lapply(iblmors_markers, FUN = function(one_gene) {
+plot_list = lapply(ors_ifeb_markers, FUN = function(one_gene) {
   p = Seurat::FeaturePlot(sobj, reduction = name2D,
                           features = one_gene) +
     Seurat::NoAxes() +
@@ -182,7 +182,7 @@ plot_list[[length(plot_list) + 1]] = Seurat::DimPlot(sobj, group.by = "cell_type
                                                      cols = color_markers, reduction = name2D,
                                                      order = save_name) +
   ggplot2::labs(title = "Cell annotation",
-                subtitle = paste0(sum(sobj$cell_type %in% iblmors_cell_type),
+                subtitle = paste0(sum(sobj$cell_type %in% ors_ifeb_cell_type),
                                   " cells")) +
   Seurat::NoAxes() + Seurat::NoLegend() +
   ggplot2::theme(aspect.ratio = 1,
@@ -193,11 +193,11 @@ plot_list[[length(plot_list) + 1]] = Seurat::DimPlot(sobj, group.by = "cell_type
 plot_list[[length(plot_list) + 1]] = Seurat::DimPlot(sobj,
                                                      reduction = name2D,
                                                      group.by = "cluster_type") +
-  ggplot2::scale_color_manual(values = c(unname(unlist(color_markers[iblmors_cell_type])),
-                                         rep("gray92", length(color_markers) - length(iblmors_cell_type))),
-                              breaks = c(iblmors_cell_type, setdiff(names(color_markers), iblmors_cell_type))) +
+  ggplot2::scale_color_manual(values = c(unname(unlist(color_markers[ors_ifeb_cell_type])),
+                                         rep("gray92", length(color_markers) - length(ors_ifeb_cell_type))),
+                              breaks = c(ors_ifeb_cell_type, setdiff(names(color_markers), ors_ifeb_cell_type))) +
   ggplot2::labs(title = "Cluster annotation",
-                subtitle = paste0(sum(sobj$cluster_type %in% iblmors_cell_type),
+                subtitle = paste0(sum(sobj$cluster_type %in% ors_ifeb_cell_type),
                                   " cells")) +
   Seurat::NoAxes() + Seurat::NoLegend() +
   ggplot2::theme(aspect.ratio = 1,
@@ -214,7 +214,7 @@ Due to clustering that badly separate ORS from IFE, there is a mis-selection of 
 We extract cells of interest based on the clustering :
 
 ```{r subset_is_of_interest}
-sobj = subset(sobj, cluster_type %in% iblmors_cell_type)
+sobj = subset(sobj, cluster_type %in% ors_ifeb_cell_type)
 sobj
 ```
 
@@ -376,7 +376,7 @@ cluster_plot
 We look at key markers for `r save_name` cells, and for eventual contamination :
 
 ```{r plot_genes, fig.width = 12, fig.height = 6}
-plot_list = lapply(c("nFeature_RNA", iblmors_markers,
+plot_list = lapply(c("nFeature_RNA", ors_ifeb_markers,
                      c("SPINK5", "KRT1", "KRT31", "PRR9")), FUN = function(one_gene) {
                        Seurat::FeaturePlot(sobj, features = one_gene,
                                            reduction = paste0(reduction_name, "_", ndims, "_umap")) +

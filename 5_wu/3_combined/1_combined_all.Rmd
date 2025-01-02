@@ -177,6 +177,7 @@ We represent cells in the tSNE :
 name2D = "RNA_pca_20_tsne"
 ```
 
+
 We look at cell type annotation for each dataset :
 
 ```{r cell_type_proj, fig.width = 14, fig.height = 8}
@@ -206,7 +207,9 @@ patchwork::wrap_plots(plot_list, ncol = 4) +
   ggplot2::theme(legend.position = "right")
 ```
 
+
 and clustering :
+
 
 ```{r clustering_proj, fig.width = 14, fig.height = 8}
 plot_list = lapply(sobj_list, FUN = function(one_sobj) {
@@ -226,6 +229,143 @@ plot_list = lapply(sobj_list, FUN = function(one_sobj) {
 })
 
 patchwork::wrap_plots(plot_list, ncol = 4)
+```
+
+## Melanocytes remomal
+
+For each individual dataset, we remove melanocytes. First, we smooth cell type annotation at a cluster level :
+
+```{r smooth_annotation}
+sobj_list = lapply(sobj_list, FUN = function(one_sobj) {
+  cluster_type = table(one_sobj$cell_type, one_sobj$seurat_clusters) %>%
+    prop.table(., margin = 2) %>%
+    apply(., 2, which.max)
+  cluster_type = setNames(nm = names(cluster_type),
+                          levels(one_sobj$cell_type)[cluster_type])
+  
+  one_sobj$cluster_type = cluster_type[one_sobj$seurat_clusters]
+  
+  ## Output
+  return(one_sobj)
+})
+```
+
+To locate melanocytes, we look at their score, cell type annotation, and clustering.
+
+```{r plot_cell_type, fig.width = 12, fig.height = 19}
+plot_list = lapply(sobj_list, FUN = function(one_sobj) {
+  project_name = as.character(unique(one_sobj$project_name))
+  plot_sublist = list()
+  
+  # Score
+  plot_sublist[[1]] = Seurat::FeaturePlot(one_sobj, reduction = name2D,
+                                          features = "score_melanocytes") +
+    ggplot2::labs(title = project_name,
+                  subtitle = "Melanocytes score") +
+    Seurat::NoAxes() +
+    ggplot2::scale_color_gradientn(colors = aquarius:::color_gene) +
+    ggplot2::theme(aspect.ratio = 1,
+                   plot.subtitle = element_text(hjust = 0.5))
+  
+  # Cell type
+  plot_sublist[[2]] = Seurat::DimPlot(one_sobj,
+                                      reduction = name2D,
+                                      group.by = "cell_type",
+                                      order = "melanocytes") +
+    ggplot2::scale_color_manual(values = c("purple", rep("gray92", length(color_markers) - 1)),
+                                breaks = c("melanocytes", setdiff(names(color_markers), "melanocytes"))) +
+    ggplot2::labs(title = "Cell type annotation",
+                  subtitle = paste0(sum(one_sobj$cell_type == "melanocytes"),
+                                    " melanocytes")) +
+    Seurat::NoAxes() + Seurat::NoLegend() +
+    ggplot2::theme(aspect.ratio = 1,
+                   plot.title = element_text(hjust = 0.5),
+                   plot.subtitle = element_text(hjust = 0.5))
+  
+  # Clusters
+  plot_sublist[[3]] = Seurat::DimPlot(one_sobj,
+                                      reduction = name2D,
+                                      group.by = "seurat_clusters",
+                                      label = TRUE) +
+    ggplot2::labs(title = "Clusters") +
+    Seurat::NoAxes() + Seurat::NoLegend() +
+    ggplot2::theme(aspect.ratio = 1,
+                   plot.title = element_text(hjust = 0.5),
+                   plot.subtitle = element_text(hjust = 0.5))
+  
+  # Cluster type
+  plot_sublist[[4]] = Seurat::DimPlot(one_sobj,
+                                      reduction = name2D,
+                                      group.by = "cluster_type") +
+    ggplot2::scale_color_manual(values = c("purple", rep("gray92", length(color_markers) - 1)),
+                                breaks = c("melanocytes", setdiff(names(color_markers), "melanocytes"))) +
+    ggplot2::labs(title = "Cluster annotation",
+                  subtitle = paste0(sum(one_sobj$cluster_type == "melanocytes"),
+                                    " melanocytes")) +
+    Seurat::NoAxes() + Seurat::NoLegend() +
+    ggplot2::theme(aspect.ratio = 1,
+                   plot.title = element_text(hjust = 0.5),
+                   plot.subtitle = element_text(hjust = 0.5))
+  
+  return(plot_sublist)
+}) %>% unlist(., recursive = FALSE)
+
+patchwork::wrap_plots(plot_list, ncol = 4)
+```
+
+Melanocytes are only present in datasets with black hairs (F31B and F62B).
+
+We remove melanocytes based on cluster annotation :
+
+```{r remove_melanocytes}
+sobj_list = lapply(sobj_list, FUN = function(one_sobj) {
+  one_sobj$is_of_interest = (one_sobj$cluster_type != "melanocytes")
+  
+  if (sum(one_sobj$is_of_interest) > 0) {
+    one_sobj = subset(one_sobj, is_of_interest == TRUE)
+  } else {
+    one_sobj = NA
+  }
+  
+  one_sobj$is_of_interest = NULL
+  return(one_sobj)
+})
+
+lapply(sobj_list, FUN = dim) %>%
+  do.call(rbind, .) %>%
+  rbind(., colSums(.))
+```
+
+## Re-annotation
+
+We remove melanocytes from annotation :
+
+```{r remove_from_annot}
+cell_markers = cell_markers[names(cell_markers) != "melanocytes"]
+color_markers = color_markers[names(color_markers) != "melanocytes"]
+dotplot_markers = dotplot_markers[names(dotplot_markers) != "melanocytes"]
+```
+
+We re-annote cells for cell type, since melanocytes have been removed :
+
+```{r re_annot}
+sobj_list = lapply(sobj_list, FUN = function(one_sobj) {
+  # Remove old annotation
+  one_sobj@meta.data[, grep(colnames(one_sobj@meta.data), pattern = "score", value = TRUE)] = NULL
+  
+  # Re-annot
+  one_sobj = aquarius::cell_annot_custom(one_sobj,
+                                         newname = "cell_type",
+                                         markers = cell_markers,
+                                         use_negative = TRUE,
+                                         add_score = FALSE,
+                                         verbose = TRUE)
+  
+  # Set factor levels
+  one_sobj$cell_type = factor(one_sobj$cell_type, levels = names(cell_markers))
+  
+  return(one_sobj)
+})
 ```
 
 

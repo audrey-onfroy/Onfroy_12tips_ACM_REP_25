@@ -79,7 +79,7 @@ knitr::opts_chunk$set(echo = TRUE, # display code
 ```
 
 
-This file is used to analyse the immune cells dataset.
+This file is used to analyse the ORS + IFE basal dataset.
 
 ```{r library}
 library(dplyr)
@@ -95,7 +95,7 @@ library(ComplexHeatmap)
 In this section, we set the global settings of the analysis. We will store data there :
 
 ```{r out_dir}
-save_name = "iblmors"
+save_name = "ors_ifeb"
 out_dir = "."
 ```
 
@@ -139,7 +139,7 @@ data.frame(cell_type = names(color_markers),
 This is the projection of interest :
 
 ```{r name2D}
-name2D = "harmony_20_tsne"
+name2D = "harmony_19_tsne"
 ```
 
 We design a custom function to make the GSEA plot and a word cloud graph :
@@ -331,8 +331,9 @@ aquarius::plot_barplot(df = table(sobj$sample_identifier,
                          `colnames<-`(c("sample_identifier", "clusters", "nb_cells")),
                        x = "sample_identifier", y = "nb_cells", fill = "clusters",
                        position = position_fill()) +
-  ggplot2::scale_fill_manual(values = c(colorRampPalette(c("chartreuse1", "chartreuse4"))(table(sort(cell_type_clusters))["ORS"]),
-                                        colorRampPalette(c("cadetblue1", "cadetblue4"))(table(sort(cell_type_clusters))["IFE basal"])),
+  ggplot2::scale_fill_manual(values = c(colorRampPalette(c("royalblue1", "royalblue4"))(table(sort(cell_type_clusters))["IFE basal"]),
+                                        colorRampPalette(c("chartreuse1", "chartreuse4"))(table(sort(cell_type_clusters))["ORS"]),
+                                        colorRampPalette(c("gray50", "black"))(table(sort(cell_type_clusters))["proliferative"])),
                              breaks = names(sort(cell_type_clusters)),
                              name = "Cell type") +
   ggplot2::geom_label(data = quantif, inherit.aes = FALSE,
@@ -387,7 +388,7 @@ head(gene_corresp)
 ## Set idents
 
 ```{r group_name_ibl_ors}
-group_name = "ORS_vs_IFE basal"
+group_name = "ORS_vs_IFE_basal"
 ```
 
 

@@ -1,0 +1,234 @@
+<h3
+id="twelve-tips-for-reproducible-analysis-of-single-cell-transcriptomics-data">Twelve
+tips for reproducible analysis of single-cell transcriptomics data</h3>
+<p>This repository contains the code to process the six scRNA-Seq
+samples from the OEP002321 dataset. This dataset was originally
+published by S. Wu and colleagues (2022) (DOI: <a
+href="https://doi.org/10.1038/s41421-022-00394-2">10.1038/s41421-022-00394-2</a>).
+The re-analysis of this dataset, from the count matrices, illustrates
+<strong>twelve tips for reproducible analysis of single-cell
+transcriptomics data</strong>. To read the analysis, please open
+<code>index.html</code> file in any browser.</p>
+<p><em>Note</em>: For the double-blind review of the article, links
+redirecting to Github or Zenodo are anonymised by using Google
+Drive.</p>
+<h3 id="reproduce-the-analysis">Reproduce the analysis</h3>
+<h4 id="input-data">Input data</h4>
+<p>The count matrices can be found in Zenodo (Record ID:
+XXanonymousXX).<br />
+Link: <a
+href="">https://drive.google.com/drive/folders/1waBQttYyOxgtri8bxuW-ja-S4WCXiFFV</a></p>
+<p>The Apptainer container can be found in Zenodo (Record ID:
+XXanonymousXX).<br />
+Link: <a
+href="">https://drive.google.com/drive/folders/1hvShyX89Usm1fXDafPGZxdaJPHKtcaKk</a></p>
+<h4 id="steps-to-reproduce-the-analysis">Steps to reproduce the
+analysis</h4>
+<p>Follows these 6 steps to reproduce the analysis:</p>
+<ol type="1">
+<li>Clone locally this Github repository</li>
+<li>Make an <code>input</code> folder in the <code>2_individual</code>
+folder</li>
+<li>Download the count matrices and organise the <code>input</code>
+folder as follows:</li>
+</ol>
+<pre><code>.
+├── F18
+│   └── raw_feature_bc_matrix
+│       ├── barcodes.tsv.gz
+│       ├── features.tsv.gz
+│       └── matrix.mtx.gz
+├── F31B
+│   └── raw_feature_bc_matrix
+│       ├── barcodes.tsv.gz
+│       ├── features.tsv.gz
+│       └── matrix.mtx.gz
+├── F31W
+│   └── raw_feature_bc_matrix
+│       ├── barcodes.tsv.gz
+│       ├── features.tsv.gz
+│       └── matrix.mtx.gz
+├── F59
+│   └── raw_feature_bc_matrix
+│       ├── barcodes.tsv.gz
+│       ├── features.tsv.gz
+│       └── matrix.mtx.gz
+├── F62B
+│   └── raw_feature_bc_matrix
+│       ├── barcodes.tsv.gz
+│       ├── features.tsv.gz
+│       └── matrix.mtx.gz
+└── F62W
+    └── raw_feature_bc_matrix
+        ├── barcodes.tsv.gz
+        ├── features.tsv.gz
+        └── matrix.mtx.gz</code></pre>
+<ol start="4" type="1">
+<li>Open the <code>knit_all.sh</code> file and edit the paths to the
+Apptainer container (line 4) and the analysis directory (line 5)</li>
+<li>Ensure to install Apptainer. Note that the versions
+<code>singularity version 3.8.7</code> and
+<code>singularity version 3.8.3</code> were used to compile the
+analysis</li>
+<li>Run the <code>knit_all.sh</code> file in a terminal:</li>
+</ol>
+<pre><code>bash knit_all.sh</code></pre>
+<h3 id="resource-requirement">Resource requirement</h3>
+<p>Using the <code>time</code> bash tool from David Keppel, David
+MacKenzie, and Assaf Gordon, installed using the
+<code>apt-get -y install time</code> command, the
+<code>/usr/bin/time -v bash knit_all.sh</code> command output the
+following summaries, reshaped in a table and excluding 0 values:</p>
+<table>
+<colgroup>
+<col style="width: 48%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th style="text-align: right;">Machine 1</th>
+<th style="text-align: right;">Machine 2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>User time (seconds)</td>
+<td style="text-align: right;">19608.27</td>
+<td style="text-align: right;">17160.05</td>
+</tr>
+<tr class="even">
+<td>System time (seconds)</td>
+<td style="text-align: right;">260.83</td>
+<td style="text-align: right;">153.05</td>
+</tr>
+<tr class="odd">
+<td>Percent of CPU this job got</td>
+<td style="text-align: right;">211%</td>
+<td style="text-align: right;">213%</td>
+</tr>
+<tr class="even">
+<td>Elapsed (wall clock) time (h:mm:ss or m:ss)</td>
+<td style="text-align: right;">2:36:20</td>
+<td style="text-align: right;">2:14:58</td>
+</tr>
+<tr class="odd">
+<td>Maximum resident set size (kbytes)</td>
+<td style="text-align: right;">8796520</td>
+<td style="text-align: right;">8797788</td>
+</tr>
+<tr class="even">
+<td>Major (requiring I/O) page faults</td>
+<td style="text-align: right;">7030</td>
+<td style="text-align: right;">13396</td>
+</tr>
+<tr class="odd">
+<td>Minor (reclaiming a frame) page faults</td>
+<td style="text-align: right;">137515231</td>
+<td style="text-align: right;">88089813</td>
+</tr>
+<tr class="even">
+<td>Voluntary context switches</td>
+<td style="text-align: right;">189139</td>
+<td style="text-align: right;">171858</td>
+</tr>
+<tr class="odd">
+<td>Involuntary context switches</td>
+<td style="text-align: right;">230109</td>
+<td style="text-align: right;">63444</td>
+</tr>
+<tr class="even">
+<td>File system inputs</td>
+<td style="text-align: right;">4161632</td>
+<td style="text-align: right;">3953590</td>
+</tr>
+<tr class="odd">
+<td>File system outputs</td>
+<td style="text-align: right;">1954984</td>
+<td style="text-align: right;">1954984</td>
+</tr>
+<tr class="even">
+<td>Page size (bytes)</td>
+<td style="text-align: right;">4096</td>
+<td style="text-align: right;">4096</td>
+</tr>
+</tbody>
+</table>
+<p>The machine characteristics are:</p>
+<table>
+<colgroup>
+<col style="width: 24%" />
+<col style="width: 41%" />
+<col style="width: 34%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th style="text-align: right;">Machine 1</th>
+<th style="text-align: right;">Machine 2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>processor</td>
+<td style="text-align: right;">Intel(R) Xeon(R) Silver 4214R CPU</td>
+<td style="text-align: right;">Intel(R) Xeon(R) W-2133 CPU</td>
+</tr>
+<tr class="even">
+<td>number of cores</td>
+<td style="text-align: right;">48</td>
+<td style="text-align: right;">12</td>
+</tr>
+<tr class="odd">
+<td>number of threads per core</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">2</td>
+</tr>
+<tr class="even">
+<td>frequency</td>
+<td style="text-align: right;">2.4 GHz</td>
+<td style="text-align: right;">3.6 GHz</td>
+</tr>
+<tr class="odd">
+<td>RAM</td>
+<td style="text-align: right;">132 GB</td>
+<td style="text-align: right;">64 GB</td>
+</tr>
+<tr class="even">
+<td>operating system</td>
+<td style="text-align: right;">Ubuntu 24.04 LTS</td>
+<td style="text-align: right;">Ubuntu 20.04 LTS</td>
+</tr>
+<tr class="odd">
+<td>Singularity version</td>
+<td style="text-align: right;">3.8.7</td>
+<td style="text-align: right;">3.8.3</td>
+</tr>
+</tbody>
+</table>
+<h3 id="additional-resources">Additional resources</h3>
+<h4 id="conversion-of-the-present-readme">Conversion of the present
+README</h4>
+<p>This README was converted into an HTML file using the
+<code>pandoc</code> version 3.1.3 and the following command:</p>
+<pre><code>pandoc -f markdown README.md &gt; README.html</code></pre>
+<h4 id="construction-of-the-index.html-page">Construction of the
+index.html page</h4>
+<p>The index.html page was initiated using the OrganizeHTML tool.<br />
+URL: <a
+href="">https://drive.google.com/drive/folders/1TFn_Sz8i3_Yv4R-zSnhpIBStOhRqRnsw</a></p>
+<p>It was then customised using Visual Studio Code. Particularly, we
+make the README.html file accessible from the index.html menu.</p>
+<h4 id="customatisation-of-the-icon">Customatisation of the icon</h4>
+<p>When opening the index.html page in a Web browser, an icon “favicon”
+is displayed in the tab. The original image has been automatically build
+and saved during the compilation of the figures.Rmd notebook in the
+<code>figures_detail</code> folder, under the name
+<code>favicon-1.png</code>. The background of the image has been removed
+using the <a href="https://www.remove.bg/">remove.bg</a> website. The
+PNG to ICO generator of the <a href="https://favicon.io/">favicon.io</a>
+has been used to convert the PNG picture to the ICO format. In the
+download zip folder, the <code>favicon.ico</code> image has been
+selected to be save in the <code>index_layout</code> &gt;
+<code>logo</code> folder.</p>

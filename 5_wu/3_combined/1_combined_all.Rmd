@@ -116,7 +116,7 @@ graphics::pie(rep(1, nrow(sample_info)),
 Here are custom colors for each cell type :
 
 ```{r color_markers, fig.width = 10, fig.height = 1.2, class.source = "fold-hide"}
-color_markers = readRDS(paste0(out_dir, "/../../1_metadata/hs_hd_color_markers.rds"))
+color_markers = readRDS(paste0(out_dir, "/../1_metadata/wu_color_markers.rds"))
 
 data.frame(cell_type = names(color_markers),
            color = unlist(color_markers)) %>%
@@ -135,14 +135,14 @@ data.frame(cell_type = names(color_markers),
 We load the markers and specific colors for each cell type :
 
 ```{r cell_markers}
-cell_markers = readRDS(paste0(out_dir, "/../../1_metadata/hs_hd_cell_markers.rds"))
+cell_markers = readRDS(paste0(out_dir, "/../1_metadata/wu_cell_markers.rds"))
 lengths(cell_markers)
 ```
 
 We load markers to display on the dotplot :
 
 ```{r dotplot_markers}
-dotplot_markers = readRDS(paste0(out_dir, "/../../1_metadata/hs_hd_dotplot_markers.rds"))
+dotplot_markers = readRDS(paste0(out_dir, "/../1_metadata/wu_dotplot_markers.rds"))
 dotplot_markers
 ```
 

@@ -1,0 +1,124 @@
+<!DOCTYPE HTML>
+
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <script type="text/javascript" src="./index_layout/functions.js">
+    </script>
+    <link rel="stylesheet" href="./index_layout/style.css">
+    <link rel="icon" type="image/x-icon" href="./index_layout/logo/favicon.ico">
+    <title>scRNA-Seq</title>
+</head>
+
+<body>
+    <!--
+        # https://plaintexttools.github.io/plain-text-table/
+        ┌──────────┬───────────────┬───────────┐
+        │ top left │     title     │ top right │  # first-row
+        ├───────┬──┴───────────────┴───────────┤
+        │       │                              │
+        │       │                              │
+        │ menu  │           iframe             │
+        │       │                              │
+        │       │                              │
+        └───────┴──────────────────────────────┘
+        -->
+
+    <div class="body-container">
+
+        <!-- FIRST ROW -->
+        <div class="first-row">
+            <!-- UPDATE BUTTON -->
+            <div class="left-corner" id="dynamic-url">
+                Url will be displayed there
+            </div>
+
+            <!-- TITLE -->
+            <div class="title">
+                <a href='index.html' title='Home'>Analysis of the OEP002321 dataset</a>
+            </div>
+
+            <!-- GITHUB LINK -->
+            <div class="right-corner">
+                <a class="github" href="https://github.com/audrey-onfroy" title="Github"></a>
+            </div>
+        </div>
+
+        <div class="column-container">
+
+            <!-- MENU -->
+            <div class="first-column">
+
+                <!-- COPY PASTE MENU THERE -->
+                <ul>
+                    <!-- readme -->
+                    <li><button id='./README.html' class='ulli_button' onClick="changeIframe('./README.html')">README
+                        </button></li>
+                    <br>
+
+                    <!-- metadata -->
+                    <li><button id='./1_metadata/1_build_metadata.html' class='ulli_button'
+                            onClick="changeIframe('./1_metadata/1_build_metadata.html')">Metadata</button>
+                    </li>
+                    <br>
+
+                    <!-- individual -->
+                    <li><a onClick="toggleSwitch(this)">Individual datasets &#9662;</a>
+                        <ul>
+                            <li><button id='./2_individual/F18.html' class='ulli_button'
+                                    onClick="changeIframe('./2_individual/F18.html')">F18</button>
+                            </li>
+                            <li><button id='./2_individual/F31B.html' class='ulli_button'
+                                    onClick="changeIframe('./2_individual/F31B.html')">F31B</button>
+                            </li>
+                            <li><button id='./2_individual/F31W.html' class='ulli_button'
+                                    onClick="changeIframe('./2_individual/F31W.html')">F31W</button>
+                            </li>
+                            <li><button id='./2_individual/F59.html' class='ulli_button'
+                                    onClick="changeIframe('./2_individual/F59.html')">F59</button>
+                            </li>
+                            <li><button id='./2_individual/F62B.html' class='ulli_button'
+                                    onClick="changeIframe('./2_individual/F62B.html')">F62B</button>
+                            </li>
+                            <li><button id='./2_individual/F62W.html' class='ulli_button'
+                                    onClick="changeIframe('./2_individual/F62W.html')">F62W</button>
+                            </li>
+                        </ul>
+                    </li>
+                    <br>
+
+                    <!-- combined -->
+                    <li><button id='./3_combined/1_combined_all.html' class='ulli_button'
+                            onClick="changeIframe('./3_combined/1_combined_all.html')">Combined dataset</button>
+                    </li>
+                    <br>
+
+                    <!-- zoom -->
+                    <li>ORS and IFE basal</li>
+                    <ul>
+                        <li><button id='./4_ors_ifeb/1_zoom_ors_ifeb_dataset.html' class='ulli_button'
+                                onClick="changeIframe('./4_ors_ifeb/1_zoom_ors_ifeb_dataset.html')">Dataset</button>
+                        </li>
+                        <li><button id='./4_ors_ifeb/2_zoom_ors_ifeb_analysis.html' class='ulli_button'
+                                onClick="changeIframe('./4_ors_ifeb/2_zoom_ors_ifeb_analysis.html')">Analysis</button>
+                        </li>
+                    </ul>
+                    <br>
+
+                    <!-- combined -->
+                    <li><button id='./5_figures/figures.html' class='ulli_button'
+                            onClick="changeIframe('./5_figures/figures.html')">Figures</button>
+                    </li>
+                </ul>
+                <!-- (END OF) COPY PASTE MENU THERE -->
+            </div>
+
+            <!-- IFRAME -->
+            <iframe id="dynamic-iframe" class="second-column" src="./index_layout/pages/first.html"></iframe>
+        </div>
+    </div>
+</body>
+
+</html>

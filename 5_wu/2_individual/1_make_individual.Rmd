@@ -124,7 +124,7 @@ count_matrix_dir = paste0(out_dir, "/input/", sample_name, "/raw_feature_bc_matr
 We load the markers and specific colors for each cell type :
 
 ```{r cell_markers}
-cell_markers = readRDS(paste0(out_dir, "/../../1_metadata/hs_hd_cell_markers.rds"))
+cell_markers = readRDS(paste0(out_dir, "/../1_metadata/wu_cell_markers.rds"))
 cell_markers = lapply(cell_markers, FUN = toupper)
 lengths(cell_markers)
 ```
@@ -132,7 +132,7 @@ lengths(cell_markers)
 Here are custom colors for each cell type :
 
 ```{r color_markers, fig.width = 12, fig.height = 1, class.source = "fold-hide"}
-color_markers = readRDS(paste0(out_dir, "/../../1_metadata/hs_hd_color_markers.rds"))
+color_markers = readRDS(paste0(out_dir, "/../1_metadata/wu_color_markers.rds"))
 
 data.frame(cell_type = names(color_markers),
            color = unlist(color_markers)) %>%
@@ -151,7 +151,7 @@ data.frame(cell_type = names(color_markers),
 We load markers to display on the dotplot :
 
 ```{r dotplot_markers}
-dotplot_markers = readRDS(paste0(out_dir, "/../../1_metadata/hs_hd_dotplot_markers.rds"))
+dotplot_markers = readRDS(paste0(out_dir, "/../1_metadata/wu_dotplot_markers.rds"))
 dotplot_markers = lapply(dotplot_markers, FUN = toupper)
 dotplot_markers
 ```

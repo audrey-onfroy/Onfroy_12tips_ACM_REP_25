@@ -79,7 +79,12 @@ knitr::opts_chunk$set(echo = TRUE, # display code
 ```
 
 
-This file is used to generate **sample_info**, a dataframe containing sample names, sample path, custom colors...
+This file is used to generate :
+
+* **sample_info** : dataframe containing sample names, sample path, custom colors...
+* **color_markers** : named list to give custom colors to cell types
+* **cell_markers** : named list containing markers for each cell type
+* **dotplot_markers** : named list containing a subset of markers for each cell type
 
 ```{r library}
 library(dplyr)
@@ -130,10 +135,121 @@ graphics::pie(rep(1, nrow(sample_info)),
               labels = sample_info$project_name)
 ```
 
-We save it :
+# Cell types
+
+We define markers for each population of interest :
+
+```{r cell_markers}
+cell_markers = list(
+  #  Immune cells
+  "CD4 T cells" = c("CD3D", "CD3G", "CD3E", "CD52", "IL32",
+                    "TRBC1", "CD4", "COTL1", "CD40LG", "GPR183", "TNFRSF1B", "FYB1", "LAT"),
+  "CD8 T cells" = c("CD3D", "CD3G", "CD3E", "CD52", "IL32",
+                    "CTSW", "NCR3", "CD8A", "NKG7", "KLRC1", "TRGC2", "CCL5", "ZNF683"),
+  "Langerhans cells" = c("CD207", "LST1", "AIF1", "CPVL", "C15orf48", "CD1A", "CD52", "CD1E", "CD1C"),
+  "macrophages" = c("LST1", "AIF1", "C3", "OLFML3", "TREM2", "A2M",
+                    "MSR1", "FCGR3A", "VSIG4", "AP003481.1"),
+  "B cells" = c("CD79A", "IGHG2", "IGHG3", "IGLC3", "IGHG1", "IGHM", "MS4A1", "IGLC2",
+                "IGHGP", "BANK1", "IGHG4", "IGKC", "TNFRSF13C", "CD79B", "KLF2", "GZMB"),
+  # Matrix
+  "cuticle" = c("KRT32", "KIF21A", "CCND2", "VCAN", "CYSTM1", "TESC", "MT4", "KRT35",
+                "DIAPH3", "VSNL1", "NOTCH1", "SNCAIP", "CADM1", "OCA2", "LAMP5"),
+  "cortex" = c("KRTAP11-1", "PRR9", "C10orf99", "CRYAB", "HEPHL1", "ALOX15B", "EFHD1", "KRT35",
+               "CALHM4", "SPECC1", "DSG4", "DNASE1L2", "TGM3", "KRT31", "KRT36", "KIAA1211L"),
+  "medulla" = c("BAMBI", "SLC7A8", "EDNRA", "ALDH1A3", "IGFBP2",
+                "KRT25", "KITLG", "MSX2", "SLC6A15", "PRDM1"),
+  "IRS" = c("KRT71", "KRT27", "KRT28", "KRT25", "CTSC", "GATA3", "KRT72", "KRT73", "KRT74",
+            "SCEL", "GFRA3", "POF1B", "RDH12", "LMO7", "TCHH", "FABP9"),
+  "proliferative" = c("NUSAP1", "PCLAF", "TOP2A", "MKI67", "BIRC5", "CENPF",
+                      "TK1", "CENPU", "TYMS", "MCM5", "GINS2", "MCM5", "PCLAF",
+                      "CDCA7", "MCM3", "TYMS", "CLSPN", "FEN1", "FAM111B", "CDT1"),
+  # Non-matrix
+  "HF-SCs" = c("KRT15", "DST", "DIO2", "TCEAL2", "SFRP1", "TNC", "WIF1", "FRZB", "LHX2", "SPRY1",
+             "COL1A2", "ITGA6", "SOX9", "S100A6", "ANGPTL7", "LGR5", "COL17A1"),
+  "IFE basal" = c("GPX2", "IMPA2", "KRT15", "DST", "COL17A1", "MOXD1", "C19orf48", "CHD7",
+                  "ALDH3A1", "AHNAK2", "CDH13", "LAMB3", "CAVIN1", "EHF", "CEBPD", "TP53AIP1"),
+  "IFE granular spinous" = c("GPX2", "IMPA2", "DEFB1", "LY6D", "EHF", "PDZK1IP1", "S100A7", "FGFBP1", "LYPD3",
+                             "CRABP2", "SPINK5", "KRT1", "KRTDAP", "CIDEA", "SUSD4", "FAM83A", "TMEM45A"),
+  "ORS" = c("KRT16", "KRT6B", "KRT6C", "NDUFA4L2", "TM4SF1", "APOC1", "SLC1A6",
+            "CLCA2", "RHOV", "CBLN2", "HES4", "SMCO4", "MGST1", "LYPD3", "MGP"),
+  # other
+  "melanocytes" = c("DCT", "KIT", "MLANA", "GPM6B", "EDNRB", "PMEL", "IGFBP7", "MITF", "ZEB2", "APOD"),
+  "sebocytes" = c("CLMP", "GLDC", "PPARG", "ACSBG1", "MGST1", "SAA1", "AR", "APMAP"))
+
+lengths(cell_markers)
+```
+
+Here are custom colors for each cell type :
+
+```{r color_markers, fig.width = 10, fig.height = 1.1}
+color_markers = c("CD4 T cells" = "mediumpurple1",
+                  "CD8 T cells" = "slateblue3",
+                  "Langerhans cells" = "lightsalmon4",
+                  "macrophages" = "darkorange",
+                  "B cells" = "black",
+                  "cuticle" = "magenta4",
+                  "cortex" = "orchid1",
+                  "medulla" = "lightpink",
+                  "IRS" = "seagreen4",
+                  "proliferative" = "lightcyan4",
+                  "HF-SCs" = "firebrick3",
+                  "IFE basal" = "royalblue3",
+                  "IFE granular spinous" = "cadetblue3",
+                  "ORS" = "chartreuse3",
+                  "melanocytes" = "saddlebrown",
+                  "sebocytes" = "gold")
+
+data.frame(cell_type = names(color_markers),
+           color = unlist(color_markers)) %>%
+  ggplot2::ggplot(., aes(x = cell_type, y = 0, fill = cell_type)) +
+  ggplot2::geom_point(pch = 21, size = 5) +
+  ggplot2::scale_fill_manual(values = unlist(color_markers), breaks = names(color_markers)) +
+  ggplot2::theme_classic() +
+  ggplot2::theme(legend.position = "none",
+                 axis.line = element_blank(),
+                 axis.title = element_blank(),
+                 axis.ticks = element_blank(),
+                 axis.text.y = element_blank(),
+                 axis.text.x = element_text(hjust = 1, angle = 30))
+```
+
+These are some markers to assess cell type annotation :
+
+```{r dotplot_markers}
+dotplot_markers = list("CD4 T cells" = c("PTPRC", "CD3E", "CD4"),
+                       "CD8 T cells" = c("CD3E", "CD8A"),
+                       "Langerhans cells" = c("CD207", "CPVL"),
+                       "macrophages" = c("TREM2", "MSR1"),
+                       "B cells" = c("CD79A", "CD79B"),
+                       "cuticle" = c("MSX2", "KRT32", "KRT35"),
+                       "cortex" = c("KRT31", "PRR9"),
+                       "medulla" = c("BAMBI", "ADLH1A3"),
+                       "IRS" = c("KRT71", "KRT73"),
+                       "proliferative" = c("TOP2A", "MCM5", "TK1"),
+                       "HF-SCs" = c("KRT14", "CXCL14"),
+                       "IFE basal" = c("COL17A1", "KRT15"),
+                       "IFE granular spinous" = c("SPINK5", "KRT1"),
+                       "ORS" = c("KRT16", "KRT6C"),
+                       "melanocytes" = c("DCT", "MLANA"),
+                       "sebocytes" = c("CLMP", "PPARG"))
+
+lengths(dotplot_markers)
+```
+
+# Save
+
+We save the `sample_info` table :
 
 ```{r save_sample_info}
 saveRDS(sample_info, file = paste0(out_dir, "/", save_name, "_sample_info.rds"))
+```
+
+We save the three objects associted with cell type annotation :
+
+```{r save_annotation}
+saveRDS(color_markers, file = paste0(out_dir, "/", save_name, "_color_markers.rds"))
+saveRDS(cell_markers, file = paste0(out_dir, "/", save_name, "_cell_markers.rds"))
+saveRDS(dotplot_markers, file = paste0(out_dir, "/", save_name, "_dotplot_markers.rds"))
 ```
 
 # R Session

@@ -1,0 +1,342 @@
+---
+title: "Twelve tips for reproducible analysis of single-cell transcriptomics data"
+subtitle: "Figures"
+author: "Audrey"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  html_document:
+    code_folding: show
+    code_download: true
+    toc: true
+    toc_float: true
+    number_sections: false
+---
+
+<style>
+body {
+text-align: justify}
+</style>
+
+<!-- Automatically computes and prints in the output the running time for any code chunk -->
+```{r, echo=FALSE}
+# https://github.com/rstudio/rmarkdown/issues/1453
+hooks = knitr::knit_hooks$get()
+hook_foldable = function(type) {
+  force(type)
+  function(x, options) {
+    res = hooks[[type]](x, options)
+    
+    if (isFALSE(options[[paste0("fold_", type)]])) return(res)
+    
+    paste0(
+      "<details><summary>", "show", "</summary>\n\n",
+      res,
+      "\n\n</details>"
+    )
+  }
+}
+knitr::knit_hooks$set(
+  output = hook_foldable("output"),
+  plot = hook_foldable("plot"),
+  time_it = local({
+    now = NULL
+    function(before, options) {
+      if (options$time_it) {
+        if (before) {
+          now <= Sys.time()
+        } else {
+          res = difftime(Sys.time(), now, units = "secs")
+          paste("(Time to run :", round(res, digits = 2), "s)")
+        }
+      }
+    }
+  })
+)
+```
+
+<!-- Set default parameters for all chunks -->
+```{r, setup, include = FALSE}
+set.seed(1337L)
+knitr::opts_chunk$set(echo = TRUE, # display code
+                      # display chunk output
+                      message = FALSE,
+                      warning = FALSE,
+                      fold_output = FALSE, # useful for sessionInfo()
+                      fold_plot = FALSE,
+                      
+                      # figure settings
+                      fig.align = 'center',
+                      fig.width = 20,
+                      fig.height = 15,
+                      
+                      # something about seed, chunk and Rmarkdown compilation
+                      # https://stackoverflow.com/questions/39417003/long-vectors-not-supported-yet-error-in-rmd-but-not-in-r-script
+                      # cache = TRUE,
+                      cache.lazy = FALSE, 
+                      
+                      # add runtime after chunk
+                      time_it = FALSE,
+                      
+                      # save figures in PDF in a separate folder
+                      dev = c('png', 'pdf'), # tiff or pdf alone renders bad in html
+                      # dpi = 300,
+                      fig.path = "figures_detail/",
+                      pdf.options(encoding = "ISOLatin9.enc"))
+```
+
+
+This file is used to prepare the figures for the paper.
+
+```{r library}
+library(dplyr)
+library(patchwork)
+library(ggplot2)
+
+.libPaths()
+```
+
+
+# Preparation
+
+Here are the folders where analyses are stored:
+
+```{r locations}
+data_dir = "./.."
+list.files(data_dir)
+```
+
+These are the custom colors for cell populations:
+
+```{r color_markers, fig.width = 10, fig.height = 1.2}
+color_markers = readRDS(paste0(data_dir, "/1_metadata/wu_color_markers.rds"))
+
+data.frame(cell_type = names(color_markers),
+           color = unlist(color_markers)) %>%
+  ggplot2::ggplot(., aes(x = cell_type, y = 0, fill = cell_type)) +
+  ggplot2::geom_point(pch = 21, size = 5) +
+  ggplot2::scale_fill_manual(values = unlist(color_markers), breaks = names(color_markers)) +
+  ggplot2::theme_classic() +
+  ggplot2::theme(legend.position = "none",
+                 axis.line = element_blank(),
+                 axis.title = element_blank(),
+                 axis.ticks = element_blank(),
+                 axis.text.y = element_blank(),
+                 axis.text.x = element_text(angle = 30, hjust = 1))
+```
+
+We load the sample information:
+
+```{r load_sample_info}
+sample_info = readRDS(paste0(data_dir, "/1_metadata/wu_sample_info.rds"))
+```
+
+We load all the data in a list:
+
+```{r list_data}
+list_data = list()
+
+## Individual samples
+list_data$individual$F18  = readRDS(paste0(data_dir, "/2_individual/datasets/F18_sobj_filtered.rds"))
+list_data$individual$F31B = readRDS(paste0(data_dir, "/2_individual/datasets/F31B_sobj_filtered.rds"))
+list_data$individual$F31W = readRDS(paste0(data_dir, "/2_individual/datasets/F31W_sobj_filtered.rds"))
+list_data$individual$F59  = readRDS(paste0(data_dir, "/2_individual/datasets/F59_sobj_filtered.rds"))
+list_data$individual$F62B = readRDS(paste0(data_dir, "/2_individual/datasets/F62B_sobj_filtered.rds"))
+list_data$individual$F62W = readRDS(paste0(data_dir, "/2_individual/datasets/F62W_sobj_filtered.rds"))
+
+## Combined dataset
+list_data$combined$sobj = readRDS(paste0(data_dir, "/3_combined/wu_sobj.rds"))
+list_data$combined$name2D = "harmony_39_tsne"
+
+## ORS and IFE basal results
+list_data$ors_ifeb$sobj = readRDS(paste0(data_dir, "/4_ors_ifeb/ors_ifeb_sobj.rds"))
+list_data$ors_ifeb$list_results = readRDS(paste0(data_dir, "/4_ors_ifeb/ors_ifeb_list_results.rds"))
+
+## Print
+str(list_data, max.level = 2)
+```
+
+We visualize the sample information table along with the number of cells within each individual sample:
+
+```{r sample_info, fig.width = 12, fig.height = 3}
+sobj = list_data$combined$sobj
+
+# Nb cells by dataset
+to_plot = table(sobj$sample_identifier) %>%
+  as.data.frame.table(., stringsAsFactors = FALSE) %>%
+  `colnames<-`(c("sample_identifier", "nb_cells")) %>%
+  dplyr::left_join(x = ., y = sample_info, by = "sample_identifier") 
+
+# patchwork
+plot_list = aquarius::fig_plot_gb(to_plot, title = "Available datasets")
+patchwork::wrap_plots(plot_list) +
+  patchwork::plot_layout(design = "A\nB", heights = c(0.1,5)) &
+  ggplot2::theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 15))
+```
+
+# Figures
+
+## Relative to the combined dataset
+
+We visualize the 2D projection of the individual samples:
+
+```{r all_samples, fig.width = 8, fig.height = 6}
+plot_list = lapply(sample_info$project_name, FUN = function(one_project_name) {
+  sobj = list_data$individual[[one_project_name]]
+  
+  p = Seurat::DimPlot(sobj, group.by = "cell_type",
+                      pt.size = 0.25,
+                      reduction = "RNA_pca_20_tsne") +
+    ggplot2::scale_color_manual(values = color_markers,
+                                breaks = names(color_markers),
+                                name = "Cell Type") +
+    ggplot2::labs(title = one_project_name,
+                  subtitle = paste0(ncol(sobj), " cells")) +
+    ggplot2::theme(aspect.ratio = 1,
+                   plot.title = element_text(hjust = 0.5),
+                   plot.subtitle = element_text(hjust = 0.5)) +
+    Seurat::NoAxes() +
+    Seurat::NoLegend()
+  
+  return(p)
+})
+
+patchwork::wrap_plots(plot_list, ncol = 3)
+```
+
+We select the combined dataset:
+
+```{r select_atlas}
+sobj = list_data$combined$sobj
+name2D = list_data$combined$name2D
+```
+
+We visualize cells colored according to the sample name:
+
+```{r project_name, fig.width = 5.5, fig.height = 4}
+# Random order
+set.seed(1234)
+rnd_order = sample(colnames(sobj), replace = FALSE, size = ncol(sobj))
+
+# Extract coordinates
+cells_coord = sobj@reductions[[name2D]]@cell.embeddings %>%
+  as.data.frame() %>%
+  `colnames<-`(c("Dim1", "Dim2"))
+cells_coord$project_name = sobj$project_name
+cells_coord = cells_coord[(rnd_order), ]
+
+# Plot
+ggplot2::ggplot(cells_coord, aes(x = Dim1, y = Dim2, col = project_name)) +
+  ggplot2::geom_point(size = 0.5) +
+  ggplot2::scale_color_manual(values = sample_info$color,
+                              breaks = sample_info$project_name,
+                              name = "Project name") +
+  ggplot2::theme_void() +
+  ggplot2::theme(aspect.ratio = 1,
+                 legend.position = "right",
+                 legend.text = element_text(size = 11.5),
+                 legend.title = element_text(size = 13)) +
+  ggplot2::guides(color = guide_legend(override.aes = list(size = 3)))
+```
+
+We make a square version without legend for the favicon of the index.html page:
+
+```{r favicon, fig.width = 2, fig.height = 2}
+ggplot2::ggplot(cells_coord, aes(x = Dim1, y = Dim2, col = project_name)) +
+  ggplot2::geom_point(size = 0.00001) +
+  ggplot2::scale_color_manual(values = sample_info$color,
+                              breaks = sample_info$project_name,
+                              name = "Project name") +
+  ggplot2::theme_void() +
+  ggplot2::theme(aspect.ratio = 1,
+                 legend.position = "none",
+                 panel.background = element_rect(fill = "transparent", colour = NA),
+                 plot.background = element_rect(fill = "transparent", colour = NA))
+```
+
+We visualize cells colored according to the cell type annotation:
+
+```{r cell_type, fig.width = 6.5, fig.height = 4}
+Seurat::DimPlot(sobj, reduction = name2D, pt.size = 0.5,
+                group.by = "cell_type") +
+  ggplot2::scale_color_manual(values = color_markers,
+                              breaks = names(color_markers),
+                              name = "Cell type") +
+  ggplot2::theme(aspect.ratio = 1) +
+  Seurat::NoAxes()
+```
+
+## Relative to the ORS and IFE basal cells
+
+We select the dataset and list of results:
+
+```{r select_ors_ifeb}
+sobj = list_data$ors_ifeb$sobj
+list_results = list_data$ors_ifeb$list_results
+
+sobj_atlas = list_data$combined$sobj
+name2D_atlas = list_data$combined$name2D
+```
+
+Location of cells on the whole atlas:
+
+```{r ors_ifeb_location, fig.width = 4, fig.height = 4}
+cell_type_of_interest = c("ORS", "IFE basal")
+
+sobj_atlas$cell_bc = colnames(sobj_atlas)
+sobj$cell_bc = colnames(sobj)
+sobj_atlas$is_of_interest = dplyr::left_join(sobj_atlas@meta.data[, c("cell_bc", "percent.mt")],
+                                             sobj@meta.data[, c("cell_bc", "cell_type")],
+                                             by = "cell_bc")[, "cell_type"]
+
+Seurat::DimPlot(sobj_atlas, reduction = name2D_atlas, pt.size = 0.4,
+                group.by = "is_of_interest", order = FALSE) +
+  ggplot2::scale_color_manual(values = c(color_markers[cell_type_of_interest], "gray92"),
+                              breaks = c(cell_type_of_interest, NA), na.value = "gray92") +
+  ggplot2::theme(aspect.ratio = 1,
+                 plot.title = element_blank()) +
+  Seurat::NoAxes() + Seurat::NoLegend()
+```
+
+Gene set enriched in ORS compared to IFE basal:
+
+```{r kera_ors_ifeb, fig.width = 6, fig.height = 4}
+the_gs_name = "REACTOME_KERATINIZATION" 
+the_content = list_results$ORS_vs_IFE_basal$gsea@result %>%
+  dplyr::filter(ID == the_gs_name)
+the_subtitle = paste0("\nNES : ", round(the_content$NES, 2),
+                      "\t|\tpvalue : ", round(the_content$pvalue, 4),
+                      "\t|\tset size : ", the_content$setSize, " genes")
+
+enrichplot::gseaplot2(x = list_results$ORS_vs_IFE_basal$gsea,
+                      geneSetID = the_gs_name) +
+  ggplot2::labs(title = "Gene Set A",
+                subtitle = the_subtitle) +
+  ggplot2::theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 15,
+                                           margin = ggplot2::margin(3, 3, 5, 3)),
+                 plot.subtitle = ggtext::element_markdown(hjust = 0.5, size = 12))
+```
+
+Gene set enriched in IFE basal compared to ORS:
+
+```{r ifn_ors_ifeb, fig.width = 6, fig.height = 4}
+the_gs_name = "HALLMARK_INTERFERON_GAMMA_RESPONSE" 
+the_content = list_results$ORS_vs_IFE_basal$gsea@result %>%
+  dplyr::filter(ID == the_gs_name)
+the_subtitle = paste0("\nNES : ", round(the_content$NES, 2),
+                      "\t|\tpvalue : ", round(the_content$pvalue, 4),
+                      "\t|\tset size : ", the_content$setSize, " genes")
+
+enrichplot::gseaplot2(x = list_results$ORS_vs_IFE_basal$gsea,
+                      geneSetID = the_gs_name) +
+  ggplot2::labs(title = "Gene Set B",
+                subtitle = the_subtitle) +
+  ggplot2::theme(plot.title = element_text(hjust = 0.5, face = "bold", size = 15,
+                                           margin = ggplot2::margin(3, 3, 5, 3)),
+                 plot.subtitle = ggtext::element_markdown(hjust = 0.5, size = 12))
+```
+
+# R Session
+
+```{r sessioninfo, echo = FALSE, fold_output = TRUE}
+sessionInfo()
+```

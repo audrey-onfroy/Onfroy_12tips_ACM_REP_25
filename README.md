@@ -20,7 +20,7 @@ Follows these 6 steps to reproduce the analysis:
 
 1. Clone locally this Github repository
 2. Make an `input` folder in the `2_individual` folder
-3. Download the count matrices and organise the `input` folder as follows:
+3. Download the count matrices.  The `2_individual/input` folder must contain the input data organised as follows:
 
 ```
 .
@@ -55,6 +55,8 @@ Follows these 6 steps to reproduce the analysis:
         ├── features.tsv.gz
         └── matrix.mtx.gz
 ```
+
+Note: It is possible to have additional files or folder in each sample-named folder (eg. `web_summary.html`). However, the `raw_feature_bc_matrix` must respect the organisation above, including file names, because the data are read from there.
 
 4. Open the `knit_all.sh` file and edit the paths to the Apptainer container (line 4) and the analysis directory (line 5)
 5. Ensure to install Apptainer. Note that the versions `singularity version 3.8.7` and `singularity version 3.8.3` were used to compile the analysis

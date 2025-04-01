@@ -29,8 +29,8 @@ analysis</h4>
 <li>Clone locally this Github repository</li>
 <li>Make an <code>input</code> folder in the <code>2_individual</code>
 folder</li>
-<li>Download the count matrices and organise the <code>input</code>
-folder as follows:</li>
+<li>Download the count matrices. The <code>2_individual/input</code>
+folder must contain the input data organised as follows:</li>
 </ol>
 <pre><code>.
 ├── F18
@@ -63,6 +63,10 @@ folder as follows:</li>
         ├── barcodes.tsv.gz
         ├── features.tsv.gz
         └── matrix.mtx.gz</code></pre>
+<p>Note: It is possible to have additional files or folder in each
+sample-named folder (eg. <code>web_summary.html</code>). However, the
+<code>raw_feature_bc_matrix</code> must respect the organisation above,
+including file names, because the data are read from there.</p>
 <ol start="4" type="1">
 <li>Open the <code>knit_all.sh</code> file and edit the paths to the
 Apptainer container (line 4) and the analysis directory (line 5)</li>

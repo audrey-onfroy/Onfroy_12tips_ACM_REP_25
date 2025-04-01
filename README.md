@@ -1,3 +1,6 @@
+[![License: CC BY-NC](https://img.shields.io/badge/Licence-CC_BY--NC--4.0-blue?logo=creativecommons&logoColor=white)](https://creativecommons.org/licenses/by-nc/4.0/)
+[![DOI](https://img.shields.io/badge/DOI-comingsoon-blue)](https://doi.org/comingsoon)
+
 ### Twelve tips for reproducible analysis of single-cell transcriptomics data
 
 This repository contains the code to process the six scRNA-Seq samples from the OEP002321 dataset. This dataset was originally published by S. Wu and colleagues (2022) (DOI: [10.1038/s41421-022-00394-2](https://doi.org/10.1038/s41421-022-00394-2)). The re-analysis of this dataset, from the count matrices, illustrates **twelve tips for reproducible analysis of single-cell transcriptomics data**. To read the analysis, please open `index.html` file in any browser.
@@ -118,3 +121,15 @@ It was then customised using Visual Studio Code. Particularly, we make the READM
 
 When opening the index.html page in a Web browser, an icon "favicon" is displayed in the tab. The original image has been automatically build and saved during the compilation of the figures.Rmd notebook in the `figures_detail` folder, under the name `favicon-1.png`. The background of the image has been removed using the [remove.bg](https://www.remove.bg/) website. The PNG to ICO generator of the [favicon.io](https://favicon.io/) has been used to convert the PNG picture to the ICO format. In the download zip folder, the `favicon.ico` image has been selected to be save in the `index_layout` > `logo` folder.
 
+## How to cite
+
+To cite this work, please use:
+
+> Anonymous - Citation coming soon
+
+To cite the original publication behind the data, please use:
+
+> S. Wu *et al*, Single-cell transcriptomics reveals lineage trajectory of human scalp hair follicle and informs mechanisms of hair graying, Cell Discovery, 2022, DOI: 10.1038/s41421-022-00394-2
+
+| ![CC](https://upload.wikimedia.org/wikipedia/commons/1/12/Cc-by-nc-sa_icon.svg) | Except where otherwise noted, this whork is licensed under <br> [https://creativecommons.org/licenses/by-nc/4.0/](https://creativecommons.org/licenses/by-nc/4.0/) |
+|:----:|:---:|

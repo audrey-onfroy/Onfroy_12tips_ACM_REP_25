@@ -3,9 +3,10 @@
 
 ### Twelve tips for reproducible analysis of single-cell transcriptomics data
 
-This repository contains the code to process the six scRNA-Seq samples from the OEP002321 dataset. This dataset was originally published by S. Wu and colleagues (2022) (DOI: [10.1038/s41421-022-00394-2](https://doi.org/10.1038/s41421-022-00394-2)). The re-analysis of this dataset, from the count matrices, illustrates **twelve tips for reproducible analysis of single-cell transcriptomics data**. To read the analysis, please open `index.html` file in any browser.
+This repository contains the code to process the six scRNA-Seq samples from the OEP002321 dataset. This dataset was originally published by S. Wu and colleagues (2022) (DOI: [10.1038/s41421-022-00394-2](https://doi.org/10.1038/s41421-022-00394-2)). The re-analysis of this dataset, from the count matrices, illustrates **twelve tips for reproducible analysis of single-cell transcriptomics data**. To navigate through the analysis, please open `index.html`.
 
-*Note*: For the double-blind review of the article, links redirecting to Github or Zenodo are anonymised by using Google Drive.
+*Note*: For the double-blind review of the article, links redirecting to Github or Zenodo are anonymised by using Google Drive. The "index.html" will redirect to the URL of the Github Pages associated with the repository. Currently, you need to download the whole folder on a local machine and open the index.html in a Web Browser.
+
 
 ### Reproduce the analysis
 
@@ -123,13 +124,17 @@ When opening the index.html page in a Web browser, an icon "favicon" is displaye
 
 ## How to cite
 
-To cite this work, please use:
-
-> Anonymous - Citation coming soon
-
 To cite the original publication behind the data, please use:
 
 > S. Wu *et al*, Single-cell transcriptomics reveals lineage trajectory of human scalp hair follicle and informs mechanisms of hair graying, Cell Discovery, 2022, DOI: 10.1038/s41421-022-00394-2
 
-| ![CC](https://upload.wikimedia.org/wikipedia/commons/1/12/Cc-by-nc-sa_icon.svg) | Except where otherwise noted, this whork is licensed under <br> [https://creativecommons.org/licenses/by-nc/4.0/](https://creativecommons.org/licenses/by-nc/4.0/) |
+To cite the R packages and other tools, please refer to original publications.
+
+To cite this work (directory tree, modular files organisation, metholoical approach to enable reproducibility…), please use:
+
+> Anonymous - Citation coming soon
+
+
+
+| ![CC](https://upload.wikimedia.org/wikipedia/commons/d/d3/Cc_by-nc_icon.svg) | Except where otherwise noted, this work is licensed under <br> [https://creativecommons.org/licenses/by-nc/4.0/](https://creativecommons.org/licenses/by-nc/4.0/) |
 |:----:|:---:|

@@ -3,20 +3,17 @@
 
 ### Twelve tips for reproducible analysis of single-cell transcriptomics data
 
-This repository contains the code to process the six scRNA-Seq samples from the OEP002321 dataset. This dataset was originally published by S. Wu and colleagues (2022) (DOI: [10.1038/s41421-022-00394-2](https://doi.org/10.1038/s41421-022-00394-2)). The re-analysis of this dataset, from the count matrices, illustrates **twelve tips for reproducible analysis of single-cell transcriptomics data**. To navigate through the analysis, please open `index.html`.
-
-*Note*: For the double-blind review of the article, links redirecting to Github or Zenodo are anonymised by using Google Drive. The "index.html" will redirect to the URL of the Github Pages associated with the repository. Currently, you need to download the whole folder on a local machine and open the index.html in a Web Browser.
-
+This repository contains the code to process the six scRNA-Seq samples from the OEP002321 dataset. This dataset was originally published by S. Wu and colleagues (2022) (DOI: [10.1038/s41421-022-00394-2](https://doi.org/10.1038/s41421-022-00394-2)). The re-analysis of this dataset, from the count matrices, illustrates **twelve tips for reproducible analysis of single-cell transcriptomics data**. To navigate through the analysis, please open [index.html](https://audrey-onfroy.github.io/Onfroy_12tips_ACM_REP_25/).
 
 ### Reproduce the analysis
 
 #### Input data
 
-The count matrices can be found in Zenodo (Record ID: XXanonymousXX). \
-Link: [https://drive.google.com/drive/folders/1waBQttYyOxgtri8bxuW-ja-S4WCXiFFV]()
+The count matrices can be found in Zenodo (Record ID: [15103193](https://zenodo.org/records/15103193)). \
+Link: [doi.org/10.5281/zenodo.15103192](https://doi.org/10.5281/zenodo.15103192)
 
-The Apptainer container can be found in Zenodo (Record ID: XXanonymousXX). \
-Link: [https://drive.google.com/drive/folders/1hvShyX89Usm1fXDafPGZxdaJPHKtcaKk]()
+The Apptainer container (V1) can be found in Zenodo (Record ID: [15512051](https://zenodo.org/records/15512051)). \
+Link: [doi.org/10.5281/zenodo.15512051](https://doi.org/10.5281/zenodo.15512051)
 
 #### Steps to reproduce the analysis
 
@@ -24,7 +21,7 @@ Follows these 6 steps to reproduce the analysis:
 
 1. Clone locally this Github repository
 2. Make an `input` folder in the `2_individual` folder
-3. Download the count matrices.  The `2_individual/input` folder must contain the input data organised as follows:
+3. Download the count matrices on Zenodo.  The `2_individual/input` folder must contain the input data organised as follows:
 
 ```
 .
@@ -113,10 +110,10 @@ pandoc -f markdown README.md > README.html
 
 #### Construction of the index.html page
 
-The index.html page was initiated using the OrganizeHTML tool. \
-URL: [https://drive.google.com/drive/folders/1TFn_Sz8i3_Yv4R-zSnhpIBStOhRqRnsw]()
+The index.html page was initiated using the OrganizeHTML tool (V2), which is accessible in Zenodo (Record ID: [15114752](https://zenodo.org/records/15114752)) \
+Link: [doi.org/10.5281/zenodo.15114752](https://doi.org/10.5281/zenodo.15114752)
 
-It was then customised using Visual Studio Code. Particularly, we make the README.html file accessible from the index.html menu.
+It was then customised using Visual Studio Code.
 
 #### Customatisation of the icon
 
@@ -132,8 +129,7 @@ To cite the R packages and other tools, please refer to original publications.
 
 To cite this work (directory tree, modular files organisation, metholoical approach to enable reproducibility…), please use:
 
-> Anonymous - Citation coming soon
-
+> Citation coming soon (July 2025)
 
 
 | ![CC](https://upload.wikimedia.org/wikipedia/commons/d/d3/Cc_by-nc_icon.svg) | Except where otherwise noted, this work is licensed under <br> [https://creativecommons.org/licenses/by-nc/4.0/](https://creativecommons.org/licenses/by-nc/4.0/) |

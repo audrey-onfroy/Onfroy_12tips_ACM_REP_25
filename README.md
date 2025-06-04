@@ -1,5 +1,5 @@
 [![License: CC BY-NC](https://img.shields.io/badge/Licence-CC_BY--NC--4.0-blue?logo=creativecommons&logoColor=white)](https://creativecommons.org/licenses/by-nc/4.0/)
-[![DOI](https://img.shields.io/badge/DOI-comingsoon-blue)](https://doi.org/comingsoon)
+[![DOI](https://img.shields.io/badge/DOI-10.5281/zenodo.15591926-blue)](https://doi.org/10.5281/zenodo.15591926)
 
 ### Twelve tips for reproducible analysis of single-cell transcriptomics data
 
@@ -121,13 +121,13 @@ When opening the index.html page in a Web browser, an icon "favicon" is displaye
 
 ## How to cite
 
-To cite the original publication behind the data, please use:
+To cite the original publication behind the **data**, please use:
 
 > S. Wu *et al*, Single-cell transcriptomics reveals lineage trajectory of human scalp hair follicle and informs mechanisms of hair graying, Cell Discovery, 2022, DOI: 10.1038/s41421-022-00394-2
 
-To cite the R packages and other tools, please refer to original publications.
+To cite the R packages and **other tools**, please refer to original publications.
 
-To cite this work (directory tree, modular files organisation, metholoical approach to enable reproducibility…), please use:
+To cite this work (directory tree, modular files organisation, methodological approach to enable **reproducibility**...), please use:
 
 > Citation coming soon (July 2025)
 

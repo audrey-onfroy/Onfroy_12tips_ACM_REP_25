@@ -1,7 +1,8 @@
 <p><a href="https://creativecommons.org/licenses/by-nc/4.0/"><img
 src="https://img.shields.io/badge/Licence-CC_BY--NC--4.0-blue?logo=creativecommons&amp;logoColor=white"
-alt="License: CC BY-NC" /></a> <a href="https://doi.org/comingsoon"><img
-src="https://img.shields.io/badge/DOI-comingsoon-blue"
+alt="License: CC BY-NC" /></a> <a
+href="https://doi.org/10.5281/zenodo.15591926"><img
+src="https://img.shields.io/badge/DOI-10.5281/zenodo.15591926-blue"
 alt="DOI" /></a></p>
 <h3
 id="twelve-tips-for-reproducible-analysis-of-single-cell-transcriptomics-data">Twelve
@@ -13,22 +14,18 @@ href="https://doi.org/10.1038/s41421-022-00394-2">10.1038/s41421-022-00394-2</a>
 The re-analysis of this dataset, from the count matrices, illustrates
 <strong>twelve tips for reproducible analysis of single-cell
 transcriptomics data</strong>. To navigate through the analysis, please
-open <code>index.html</code>.</p>
-<p><em>Note</em>: For the double-blind review of the article, links
-redirecting to Github or Zenodo are anonymised by using Google Drive.
-The “index.html” will redirect to the URL of the Github Pages associated
-with the repository. Currently, you need to download the whole folder on
-a local machine and open the index.html in a Web Browser.</p>
+open <a
+href="https://audrey-onfroy.github.io/Onfroy_12tips_ACM_REP_25/">index.html</a>.</p>
 <h3 id="reproduce-the-analysis">Reproduce the analysis</h3>
 <h4 id="input-data">Input data</h4>
-<p>The count matrices can be found in Zenodo (Record ID:
-XXanonymousXX).<br />
+<p>The count matrices can be found in Zenodo (Record ID: <a
+href="https://zenodo.org/records/15103193">15103193</a>).<br />
 Link: <a
-href="">https://drive.google.com/drive/folders/1waBQttYyOxgtri8bxuW-ja-S4WCXiFFV</a></p>
-<p>The Apptainer container can be found in Zenodo (Record ID:
-XXanonymousXX).<br />
+href="https://doi.org/10.5281/zenodo.15103192">doi.org/10.5281/zenodo.15103192</a></p>
+<p>The Apptainer container (V1) can be found in Zenodo (Record ID: <a
+href="https://zenodo.org/records/15512051">15512051</a>).<br />
 Link: <a
-href="">https://drive.google.com/drive/folders/1hvShyX89Usm1fXDafPGZxdaJPHKtcaKk</a></p>
+href="https://doi.org/10.5281/zenodo.15512051">doi.org/10.5281/zenodo.15512051</a></p>
 <h4 id="steps-to-reproduce-the-analysis">Steps to reproduce the
 analysis</h4>
 <p>Follows these 6 steps to reproduce the analysis:</p>
@@ -36,8 +33,9 @@ analysis</h4>
 <li>Clone locally this Github repository</li>
 <li>Make an <code>input</code> folder in the <code>2_individual</code>
 folder</li>
-<li>Download the count matrices. The <code>2_individual/input</code>
-folder must contain the input data organised as follows:</li>
+<li>Download the count matrices on Zenodo. The
+<code>2_individual/input</code> folder must contain the input data
+organised as follows:</li>
 </ol>
 <pre><code>.
 ├── F18
@@ -226,11 +224,12 @@ README</h4>
 <pre><code>pandoc -f markdown README.md &gt; README.html</code></pre>
 <h4 id="construction-of-the-index.html-page">Construction of the
 index.html page</h4>
-<p>The index.html page was initiated using the OrganizeHTML tool.<br />
-URL: <a
-href="">https://drive.google.com/drive/folders/1TFn_Sz8i3_Yv4R-zSnhpIBStOhRqRnsw</a></p>
-<p>It was then customised using Visual Studio Code. Particularly, we
-make the README.html file accessible from the index.html menu.</p>
+<p>The index.html page was initiated using the OrganizeHTML tool (V2),
+which is accessible in Zenodo (Record ID: <a
+href="https://zenodo.org/records/15114752">15114752</a>)<br />
+Link: <a
+href="https://doi.org/10.5281/zenodo.15114752">doi.org/10.5281/zenodo.15114752</a></p>
+<p>It was then customised using Visual Studio Code.</p>
 <h4 id="customatisation-of-the-icon">Customatisation of the icon</h4>
 <p>When opening the index.html page in a Web browser, an icon “favicon”
 is displayed in the tab. The original image has been automatically build
@@ -244,18 +243,20 @@ download zip folder, the <code>favicon.ico</code> image has been
 selected to be save in the <code>index_layout</code> &gt;
 <code>logo</code> folder.</p>
 <h2 id="how-to-cite">How to cite</h2>
-<p>To cite the original publication behind the data, please use:</p>
+<p>To cite the original publication behind the <strong>data</strong>,
+please use:</p>
 <blockquote>
 <p>S. Wu <em>et al</em>, Single-cell transcriptomics reveals lineage
 trajectory of human scalp hair follicle and informs mechanisms of hair
 graying, Cell Discovery, 2022, DOI: 10.1038/s41421-022-00394-2</p>
 </blockquote>
-<p>To cite the R packages and other tools, please refer to original
-publications.</p>
+<p>To cite the R packages and <strong>other tools</strong>, please refer
+to original publications.</p>
 <p>To cite this work (directory tree, modular files organisation,
-metholoical approach to enable reproducibility…), please use:</p>
+methodological approach to enable <strong>reproducibility</strong>…),
+please use:</p>
 <blockquote>
-<p>Anonymous - Citation coming soon</p>
+<p>Citation coming soon (July 2025)</p>
 </blockquote>
 <table>
 <colgroup>

@@ -129,7 +129,7 @@ To cite the R packages and **other tools**, please refer to original publication
 
 To cite this work (directory tree, modular files organisation, methodological approach to enable **reproducibility**...), please use:
 
-> Citation coming soon (July 2025)
+> Onfroy *et al.*, Twelve Tips for Reproducible Analysis of Single-Cell Transcriptomics Data, ACM REP '25; doi: 10.1145/3736731.3746138
 
 
 | ![CC](https://upload.wikimedia.org/wikipedia/commons/d/d3/Cc_by-nc_icon.svg) | Except where otherwise noted, this work is licensed under <br> [https://creativecommons.org/licenses/by-nc/4.0/](https://creativecommons.org/licenses/by-nc/4.0/) |
